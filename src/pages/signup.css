@@ -1,0 +1,89 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.body-class {
+    background-color: #2e2f38;
+}
+
+.input {
+    position: relative;
+    width: 100%;
+    padding: 20px 10px 10px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-family: 'Poppins';
+    font-weight: 500;
+    line-height: 30.8px;
+    z-index: 10;
+    text-decoration: none;
+}
+
+.span {
+    position: absolute;
+    left: 0;
+    padding: 20px 0px 10px;
+    font-size: 1.25rem;
+    color: #2e2f38;
+    font-family: 'Poppins';
+    font-weight: 400;
+    line-height: 30.8px;
+    pointer-events: none;
+    transition: 0.5s;
+}
+
+.input:focus ~ .span {
+    color: #3AAFA9;
+    transform: translateY(-34px);
+    font-size: 1rem;
+    font-family: 'Poppins';
+}
+
+.i-tag {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 130%;
+    height: 2px;
+    background-color: #3AAFA9;
+    border-radius: 4px;
+    transition: 0.5s;
+    pointer-events: none;
+    z-index: 9;
+}
+
+.input:focus ~ .i-tag {
+    height: 51px;
+    background-color: #61bfba;
+}
+
+button[type="submit"] {
+    border: none;
+    outline: none;
+    background: #3AAFA9;
+    padding: 11px 25px;
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-family: 'Poppins';
+    font-size: 1.25rem;
+    line-height: 30.8px;
+    cursor: pointer;
+}
+
+.login-h,
+.login-h::before,
+.login-h::after {
+    height: 525px;
+}
+
+.signup-h,
+.signup-h::before,
+.signup-h::after {
+    height: 725px;
+}

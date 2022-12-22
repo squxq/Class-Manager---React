@@ -1,13 +1,130 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --black-gradient: linear-gradient(144.39deg,
+            #ffffff -278.56%,
+            #6d6d6d -78.47%,
+            #11101d 91.61%);
+    --card-shadow: 0px 20px 100px -10px rgba(66, 71, 91, 0.1);
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+* {
+    scroll-behavior: smooth;
+}
+
+.text-gradient {
+    background: radial-gradient(64.18% 64.18% at 71.16% 35.69%,
+            #C3E7E5 0.89%,
+            #B0DFDC 17.23%,
+            #9CD7D4 42.04%,
+            #88CFCB 55.12%,
+            #61BFBA 71.54%,
+            #3AAFA9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+.bg-blue-gradient {
+    background: linear-gradient(157.81deg,
+            #B0DFDC 0.89%,
+            #9CD7D4 17.23%,
+            #88CFCB 42.04%,
+            #61BFBA 55.12%,
+            #4DB7B1 71.54%,
+            #3AAFA9 100%);
+}
+
+.bg-black-gradient {
+    background: linear-gradient(144.39deg,
+            #ffffff -278.56%,
+            #6d6d6d -78.47%,
+            #11101d 91.61%);
+}
+
+.bg-black-gradient-2 {
+    background: linear-gradient(168.39deg,
+            #F6F6F6 -278.56%,
+            #3AAFA9 -78.47%,
+            #171923 91.61%);
+}
+
+.bg-gray-gradient {
+    background: linear-gradient(153.47deg,
+            rgba(255, 255, 255, 0) -341.94%,
+            #14101d 95.11%);
+}
+
+.bg-discount-gradient {
+    background: linear-gradient(125.17deg, #272727 0%, #11101d 100%);
+}
+
+.box-shadow {
+    box-shadow: 0px 20px 100px -10px rgba(66, 71, 91, 0.1);
+}
+
+.sidebar {
+    -webkit-animation: slide-top 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: slide-top 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@-webkit-keyframes slide-top {
+    0% {
+        -webkit-transform: translateY(100px);
+        transform: translateY(100px);
+    }
+
+    100% {
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-top {
+    0% {
+        -webkit-transform: translateY(100px);
+        transform: translateY(100px);
+    }
+
+    100% {
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+    }
+}
+
+.feature-card:hover {
+    background: var(--black-gradient);
+    box-shadow: var(--card-shadow);
+}
+
+.feedback-container .feedback-card:last-child {
+    margin-right: 0px;
+}
+
+.feedback-card {
+    background: transparent;
+}
+
+.feedback-card:hover {
+    background: var(--black-gradient);
+}
+
+.blue__gradient {
+    background: linear-gradient(180deg, rgba(188, 165, 255, 0) 0%, #171923 100%);
+    filter: blur(150px);
+}
+
+.pink__gradient {
+    background: linear-gradient(90deg, #f4c4f3 0%, #fc67fa 100%);
+    filter: blur(900px);
+}
+
+.white__gradient {
+    background: rgba(255, 255, 255, 0.6);
+    filter: blur(750px);
 }
