@@ -87,3 +87,9 @@ button[type="submit"] {
 .signup-h::after {
     height: 725px;
 }
+
+.error-span {
+    margin-left: 5px;
+    color: #f6f6f6;
+    font-size: .85rem;
+}

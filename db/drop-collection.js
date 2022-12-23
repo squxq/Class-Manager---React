@@ -9,7 +9,7 @@ const connectDB = (url) => {
 mongoose.set(`strictQuery`, false)
 
 async function deleteItems () {
-    await connectDB(process.env.MONGODB_URI)
+    await connectDB(`mongodb+srv://squxq:Apessoa2007@nodeexpressprojects.3tukuxo.mongodb.net/Class-Manager?retryWrites=true&w=majority`)
     await User.deleteMany({})
 }
 

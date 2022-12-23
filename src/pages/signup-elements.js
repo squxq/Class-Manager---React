@@ -14,7 +14,7 @@ export const BoxDiv = styled.div`
         top: -50%;
         left: -50%;
         width: 475px;
-        background: linear-gradient(0deg, transparent, #3AAFA9, #3AAFA9);
+        background: linear-gradient(0deg, transparent, #F6F6F6, #F6F6F6); // checkmakr the color that can be changed to accent color
         transform-origin: bottom right;
         animation: animate 16s linear infinite;
     }
@@ -25,7 +25,7 @@ export const BoxDiv = styled.div`
         top: -50%;
         left: -50%;
         width: 475px;
-        background: linear-gradient(0deg, transparent, #3AAFA9, #3AAFA9);
+        background: linear-gradient(0deg, transparent, #F6F6F6, #F6F6F6); // checkmakr the color that can be changed to accent color
         transform-origin: bottom right;
         animation: animate 16s linear infinite;
         animation-delay: -8s;

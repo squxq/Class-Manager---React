@@ -2,6 +2,7 @@ import React, { useEffect, useState, useReducer } from 'react'
 import styles from '../../style.js'
 import '../signup.css'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
 import {
   BoxDiv,
@@ -15,58 +16,38 @@ import {
 
 
 const SignupPage = () => {
-  const formReducer = (state, event) => {
-    return {
-      ...state,
-      [event.name]: event.value
-    }
+  const [firstname, setFirstname] = useState("")
+  const [lastname, setLastname] = useState("")
+  const [email , setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+  const [errors, setErrors] = useState({})
+
+  const navigate = useNavigate()
+
+  const storeAuth = (token, user) => {
+    localStorage.setItem("user", JSON.stringify(user))
   }
 
-  const [firstname, setFirstname] = useReducer(formReducer, {})
-  const [lastname, setLastname] = useReducer(formReducer, {})
-  const [email, setEmail] = useReducer(formReducer, {})
-  const [password, setPassword] = useReducer(formReducer, {})
-  
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-
-    const postData = async (firstname, lastname, email, password) => {
-      axios({
-        method: `post`,
-        url: `http://localhost:5000/signup`,
-        data: { firstname, lastname, email, password }
+    await axios({
+      method: `post`,
+      url: `http://localhost:5000/signup`,
+      data: { firstname, lastname, email, password },
+      withCredentials: true,
+    })
+      .then((res) => {
+        const { user, token } = res.data
+        storeAuth(token, user)
+        navigate(`/confirmation/${user}`)
+      })
+      .catch((err) => {
+        console.log(err);
       })
     }
-
-    postData(firstname[""], lastname[""], email[""], password[""])
-  }
-
-  const handleFirstname = event => {
-    setFirstname({
-      name: event.target.name,
-      value: event.target.value,
-    })
-  }
-  const handleLastname = event => {
-    setLastname({
-      name: event.target.name,
-      value: event.target.value,
-    })
-  }
-  const handleEmail = event => {
-    setEmail({
-      name: event.target.name,
-      value: event.target.value,
-    })
-  }
-  const handlePassword = event => {
-    setPassword({
-      name: event.target.name,
-      value: event.target.value,
-    })
-  }
-
-  return (
+    
+    return (
     <div className={`${styles.flexCenter} min-h-screen body-class w-full`}>
       <BoxDiv className={`signup-h`}>
         <FormDiv onSubmit={ handleSubmit }>
@@ -75,32 +56,36 @@ const SignupPage = () => {
           </SignUpH2>
           <InputBox>
             <input type="text" className={`input`} id="firstname"
-            onChange={ handleFirstname }
+            onChange={(e) => setFirstname(e.target.value)}
             />
-            <span className={`span`}>First Name</span>
+            <span className={`span`}>{!firstname ? `First Name` : ``}</span>
             <i className={`i-tag`}></i>
           </InputBox>
+            <span className={`error-span`}>{ errors["firstname"] }</span>
           <InputBox>
             <input type="text" className={`input`} id="lastname"
-            onChange={ handleLastname }
+            onChange={(e) => setLastname(e.target.value)}
             />
-            <span className={`span`}>Last Name</span>
+            <span className={`span`}>{!lastname ? `Last Name` : ``}</span>
             <i className={`i-tag`}></i>
           </InputBox>
+            <span className={`error-span`}>{ errors["lastname"] }</span>
           <InputBox>
             <input type="text" className={`input`} id="email"
-            onChange={ handleEmail }
+            onChange={(e) => setEmail(e.target.value)}
             />
-            <span className={`span`}>Email</span>
+            <span className={`span`}>{!email ? `Email` : ``}</span>
             <i className={`i-tag`}></i>
           </InputBox>
+            <span className={`error-span`}>{ errors["email"] }</span>
           <InputBox>
             <input type="text" className={`input`} id="password"
-            onChange={ handlePassword }
+            onChange={(e) => setPassword(e.target.value)}
             />
-            <span className={`span`}>Password</span>
+            <span className={`span`}>{!password ? `Password` : ``}</span>
             <i className={`i-tag`}></i>
           </InputBox>
+            <span className={`error-span`}>{ errors["password"] }</span>
           <LinksDiv>
               <ForgotPasswordLink>Forgot Password?</ForgotPasswordLink>
               <LoginLink to="/login">Log In</LoginLink>

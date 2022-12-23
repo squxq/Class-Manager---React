@@ -1,20 +1,17 @@
 const jwt = require(`jsonwebtoken`)
 require(`dotenv`).config()
+const { StatusCodes } = require(`http-status-codes`)
 
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
+    const token = req.cookies.token
     try {
-        const token = req.cookies.token
-        // check jwt exists and its verified
-        if (!token) throw Error(`User is not logged in.`)
-    
-        jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
-            if (err) throw Error(`User is not logged in.`)
-
-            console.log(decodedToken);
+        if (token) {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET)
+            console.log(decoded);
             next()
-        })
+        }
     } catch (error) {
-        res.redirect(`/login`)
+        // throw Error(`Something went wrong.`)
     }
 }
 

@@ -19,41 +19,26 @@ app.use(cookieParser())
 
 // CORS
 app.use((req, res, next) => {
-    res.append(`Access-Control-Allow-Origin`, [`*`])
+    res.append(`Access-Control-Allow-Origin`, `http://localhost:5173`)
     res.append('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE');
     res.append('Access-Control-Allow-Headers', 'Content-Type');
+    res.append('Access-Control-Allow-Credentials', 'true')
     next();
 })
 
 // ejs
 app.set(`view engine`, `ejs`)
 
-// auth middleware
-const auth = require(`./middleware/auth.js`)
-
 // before auth router
 const beforeAuthRouter = require(`./routes/before-auth`)
 app.use(`/`, beforeAuthRouter)
 
-// dashboard
-/*
-app.get(`/dashboard`, auth, (req, res) => {
-    res
-        .status(StatusCodes.OK)
-        .json({
-            success: true,
-        })
-})
+// auth middleware
+const auth = require(`./middleware/auth`)
 
-// route not found
-app.get(`*`, (req, res) => {
-    res
-        .status(StatusCodes.NOT_FOUND)
-        .json({
-            success: false,
-        })
-}) 
-*/
+// confirmation link
+const confirmationRouter = require(`./routes/confirmation`)
+app.use(`/confirmation/:id`, auth, confirmationRouter)
 
 // setting up the server
 const port = process.env.PORT || 5000

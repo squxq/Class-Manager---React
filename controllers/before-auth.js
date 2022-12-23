@@ -72,13 +72,13 @@ const signup = async (req, res) => {
         const user = await User.create({ ...req.body })
         const token = await user.createToken()
 
-        res.cookie(`token`, token, {
-            httpOnly: true,
-        })
-
         res
             .status(StatusCodes.CREATED)
-            .json({ user: user._id })
+            .cookie(`token`, token, {
+                secure: false,
+                httpOnly: true,
+            })
+            .json({ user: user._id, token })
     } catch (error) {
         const errors = handleErrors(error)
         res
