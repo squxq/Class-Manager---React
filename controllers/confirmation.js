@@ -8,7 +8,7 @@ const confirmation = async (req, res) => {
     } catch (error) {
         res
             .status(StatusCodes.BAD_REQUEST)
-            .json({ success: false })
+            .json({ error })
     }
 }
 

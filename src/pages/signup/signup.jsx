@@ -3,6 +3,7 @@ import styles from '../../style.js'
 import '../signup.css'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import Button from '../../components/button.js'
 
 import {
   BoxDiv,
@@ -43,12 +44,16 @@ const SignupPage = () => {
         navigate(`/confirmation/${user}`)
       })
       .catch((err) => {
-        console.log(err);
+        if (err.response.data.errors) {
+          setErrors(err.response.data.errors)
+        } else {
+          console.log(err)
+        }
       })
     }
     
     return (
-    <div className={`${styles.flexCenter} min-h-screen body-class w-full`}>
+    <div className={`${styles.flexCenter} min-h-screen body-class w-full bg-primary`}>
       <BoxDiv className={`signup-h`}>
         <FormDiv onSubmit={ handleSubmit }>
           <SignUpH2>
@@ -58,7 +63,7 @@ const SignupPage = () => {
             <input type="text" className={`input`} id="firstname"
             onChange={(e) => setFirstname(e.target.value)}
             />
-            <span className={`span`}>{!firstname ? `First Name` : ``}</span>
+            <span className={!firstname ? `span` : `over`}>First Name</span>
             <i className={`i-tag`}></i>
           </InputBox>
             <span className={`error-span`}>{ errors["firstname"] }</span>
@@ -66,7 +71,7 @@ const SignupPage = () => {
             <input type="text" className={`input`} id="lastname"
             onChange={(e) => setLastname(e.target.value)}
             />
-            <span className={`span`}>{!lastname ? `Last Name` : ``}</span>
+            <span className={!lastname ? `span` : `over`}>Last Name</span>
             <i className={`i-tag`}></i>
           </InputBox>
             <span className={`error-span`}>{ errors["lastname"] }</span>
@@ -74,7 +79,7 @@ const SignupPage = () => {
             <input type="text" className={`input`} id="email"
             onChange={(e) => setEmail(e.target.value)}
             />
-            <span className={`span`}>{!email ? `Email` : ``}</span>
+            <span className={!email ? `span` : `over`}>Email</span>
             <i className={`i-tag`}></i>
           </InputBox>
             <span className={`error-span`}>{ errors["email"] }</span>
@@ -82,7 +87,7 @@ const SignupPage = () => {
             <input type="text" className={`input`} id="password"
             onChange={(e) => setPassword(e.target.value)}
             />
-            <span className={`span`}>{!password ? `Password` : ``}</span>
+            <span className={!password ? `span` : `over`}>Password</span>
             <i className={`i-tag`}></i>
           </InputBox>
             <span className={`error-span`}>{ errors["password"] }</span>
@@ -90,7 +95,8 @@ const SignupPage = () => {
               <ForgotPasswordLink>Forgot Password?</ForgotPasswordLink>
               <LoginLink to="/login">Log In</LoginLink>
           </LinksDiv>
-          <button type="submit">Sign Up</button>
+          <button type="submit"
+          >Sign Up</button>
         </FormDiv>
       </BoxDiv>
     </div>

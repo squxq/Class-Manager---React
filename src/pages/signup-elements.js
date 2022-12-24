@@ -14,7 +14,7 @@ export const BoxDiv = styled.div`
         top: -50%;
         left: -50%;
         width: 475px;
-        background: linear-gradient(0deg, transparent, #F6F6F6, #F6F6F6); // checkmakr the color that can be changed to accent color
+        background: linear-gradient(0deg, transparent, #3AAFA9, #3AAFA9); // checkmakr the color that can be changed to accent color
         transform-origin: bottom right;
         animation: animate 16s linear infinite;
     }
@@ -25,7 +25,7 @@ export const BoxDiv = styled.div`
         top: -50%;
         left: -50%;
         width: 475px;
-        background: linear-gradient(0deg, transparent, #F6F6F6, #F6F6F6); // checkmakr the color that can be changed to accent color
+        background: linear-gradient(0deg, transparent, #3AAFA9, #3AAFA9); // checkmakr the color that can be changed to accent color
         transform-origin: bottom right;
         animation: animate 16s linear infinite;
         animation-delay: -8s;
@@ -53,7 +53,7 @@ export const FormDiv = styled.form`
 `
 
 export const SignUpH2 = styled.h2`
-    color: #3AAFA9;
+    color: #f6f6f6;
     font-weight: 600;
     text-align: center;
     font-size: 48px;

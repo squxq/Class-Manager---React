@@ -49,7 +49,7 @@
     bottom: 0;
     width: 130%;
     height: 2px;
-    background-color: #3AAFA9;
+    background-color: #f6f6f6;
     border-radius: 4px;
     transition: 0.5s;
     pointer-events: none;
@@ -90,6 +90,34 @@ button[type="submit"] {
 
 .error-span {
     margin-left: 5px;
-    color: #f6f6f6;
+    color: #3AAFA9;
     font-size: .85rem;
+}
+
+.over {
+    position: absolute;
+    left: 0;
+    padding: 20px 0px 10px;
+    font-size: 1.25rem;
+    color: #2e2f38;
+    font-family: 'Poppins';
+    font-weight: 400;
+    line-height: 30.8px;
+    pointer-events: none;
+    transition: 0.5s;
+    color: #3AAFA9;
+    transform: translateY(-34px);
+    font-size: 1rem;
+    font-family: 'Poppins';
+}
+
+.onFocus {
+    transition: all 0.5s ease-in-out;
+    border-color: #f6f6f6;
+    text-decoration: none;
+}
+
+.onFocus:focus {
+    transition: all 0.5s ease-in-out;
+    border-color: #3AAFA9;
 }

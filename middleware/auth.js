@@ -4,14 +4,18 @@ const { StatusCodes } = require(`http-status-codes`)
 
 const auth = async (req, res, next) => {
     const token = req.cookies.token
+
+    if (!token) { 
+        throw Error(`No token provided.`)
+    }
+
     try {
-        if (token) {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET)
-            console.log(decoded);
-            next()
-        }
+        const decoded = jwt.decode(token, process.env.JWT_SECRET)
+        const { id, firstname, lastname } = decoded
+        req.user = { id, firstname, lastname }
+        next()
     } catch (error) {
-        // throw Error(`Something went wrong.`)
+        throw Error(`Not authorized to access this route.`)
     }
 }
 

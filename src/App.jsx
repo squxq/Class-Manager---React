@@ -53,7 +53,8 @@ const App = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await axios.get(`http://localhost:5000/confirmation/:id`, { withCredentials: true })
+      await axios.get(`http://localhost:5000/confirmation/:id`, 
+      { withCredentials: true })
         .then((res) => {
           setConfirmationData(res.data.success)
         })

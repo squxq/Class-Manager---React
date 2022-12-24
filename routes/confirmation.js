@@ -2,6 +2,9 @@ const router = require(`express`).Router()
 
 const confirmation = require(`../controllers/confirmation`)
 
-router.get(`/`, confirmation)
+// auth middleware
+const auth = require(`../middleware/auth`)
+
+router.get(`/confirmation/:id`, confirmation)
 
 module.exports = router
