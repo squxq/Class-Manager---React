@@ -50,6 +50,7 @@ const App = () => {
   }, [])
 
   const [confirmationData, setConfirmationData] = useState(false)
+  const [confirmationError, setConfirmationError] = useState(``)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,7 +59,10 @@ const App = () => {
         .then((res) => {
           setConfirmationData(res.data.success)
         })
-        .catch((err) => console.log(err))
+        .catch((err) => {
+          // setConfirmationError(err)
+          console.log(err);
+        })
     }
 
     fetchData()
@@ -70,7 +74,7 @@ const App = () => {
         <Route path='/' element={ !homeData ? <h1>Loading...</h1> : <Home /> } exact />
         <Route path='/signup' element={ !signupData ? <h1>Loading...</h1> : <SignupPage /> } exact />
         <Route path='/login' element={ !loginData ? <h1>Loading...</h1> : <LoginPage /> } exact />
-        <Route path='/confirmation/:id' element={ !confirmationData ? <h1>Unauthorized</h1> : <ConfirmationPage />} />
+        <Route path='/confirmation/:id' element={ !confirmationData ? <h1>{ confirmationError }</h1> : <ConfirmationPage />} />
       </Routes>
     </Router>
   )

@@ -6,16 +6,23 @@ const auth = async (req, res, next) => {
     const token = req.cookies.token
 
     if (!token) { 
-        throw Error(`No token provided.`)
+        throw new Error(`No token provided.`)
     }
 
     try {
-        const decoded = jwt.decode(token, process.env.JWT_SECRET)
-        const { id, firstname, lastname } = decoded
-        req.user = { id, firstname, lastname }
-        next()
+        // const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        // const { id, firstname, lastname } = decoded
+        // req.user = { id, firstname, lastname }
+        // next()
+
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err) { throw new Error(`Unauthorized.`) }
+            const { id, firstname, lastname } = decoded
+            req.user = { id, firstname, lastname }
+            next()
+        })
     } catch (error) {
-        throw Error(`Not authorized to access this route.`)
+        next(error)
     }
 }
 

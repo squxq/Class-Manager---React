@@ -5,6 +5,6 @@ const confirmation = require(`../controllers/confirmation`)
 // auth middleware
 const auth = require(`../middleware/auth`)
 
-router.get(`/confirmation/:id`, confirmation)
+router.get(`/confirmation/:id`, auth, confirmation)
 
 module.exports = router
