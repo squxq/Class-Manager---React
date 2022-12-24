@@ -46,7 +46,7 @@ const login = async (req, res) => {
 
         res
             .status(StatusCodes.OK)
-            .json({ user: user._id })
+            .json({ user: user._id, token })
     } catch (error) {
         const { email, password } = handleErrors(error)
         res
