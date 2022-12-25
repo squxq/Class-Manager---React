@@ -11,7 +11,7 @@ const App = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await axios.get(`http://localhost:5000/`)
+      await axios.get(`http://localhost:5000/`, { withCredentials: false })
         .then((res) => {
           setHomeData(res.data.success)
         })
@@ -25,7 +25,7 @@ const App = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await axios.get(`http://localhost:5000/signup`)
+      await axios.get(`http://localhost:5000/signup`, { withCredentials: false })
         .then((res) => {
           setSignupData(res.data.success)
         })
@@ -39,7 +39,7 @@ const App = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await axios.get(`http://localhost:5000/login`)
+      await axios.get(`http://localhost:5000/login`, { withCredentials: false })
         .then((res) => {
           setLoginData(res.data.success)
         })
@@ -59,14 +59,17 @@ const App = () => {
         .then((res) => {
           setConfirmationData(res.data.success)
         })
-        .catch((err) => {
-          // setConfirmationError(err)
-          console.log(err);
+        .catch(async (err) => {
+          try {
+            setConfirmationError(err.response.data.err)
+          } catch (error) {
+            console.log(err);
+          }
         })
     }
 
     fetchData()
-  })
+  }, [])
   
   return (
     <Router>
@@ -74,7 +77,7 @@ const App = () => {
         <Route path='/' element={ !homeData ? <h1>Loading...</h1> : <Home /> } exact />
         <Route path='/signup' element={ !signupData ? <h1>Loading...</h1> : <SignupPage /> } exact />
         <Route path='/login' element={ !loginData ? <h1>Loading...</h1> : <LoginPage /> } exact />
-        <Route path='/confirmation/:id' element={ !confirmationData ? <h1>{ confirmationError }</h1> : <ConfirmationPage />} />
+        <Route path='/confirmation/:id' element={ !confirmationData ? <h1>{ confirmationError }</h1> : <ConfirmationPage />} exact />
       </Routes>
     </Router>
   )

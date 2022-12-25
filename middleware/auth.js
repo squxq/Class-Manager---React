@@ -6,23 +6,27 @@ const auth = async (req, res, next) => {
     const token = req.cookies.token
 
     if (!token) { 
-        throw new Error(`No token provided.`)
+        return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: `Token not found.`
+        })
     }
 
     try {
-        // const decoded = jwt.verify(token, process.env.JWT_SECRET)
-        // const { id, firstname, lastname } = decoded
-        // req.user = { id, firstname, lastname }
-        // next()
+        const decoded = jwt.decode(token, process.env.JWT_SECRET)
 
-        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-            if (err) { throw new Error(`Unauthorized.`) }
-            const { id, firstname, lastname } = decoded
-            req.user = { id, firstname, lastname }
-            next()
-        })
+        if(!decoded) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                err: `Invalid token.`
+            })
+        }
+
+        const { id, firstname, lastname } = decoded
+        req.user = { id, firstname, lastname }
+        next()
     } catch (error) {
-        next(error)
+        throw Error(error.message)
     }
 }
 

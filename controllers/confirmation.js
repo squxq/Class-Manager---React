@@ -6,9 +6,10 @@ const confirmation = async (req, res) => {
             .status(StatusCodes.OK)
             .json({ success: true })
     } catch (err) {
-        res
-            .status(StatusCodes.BAD_REQUEST)
-            .json({ success: false })
+        res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            err: err.message,
+        })
     }
 }
 
