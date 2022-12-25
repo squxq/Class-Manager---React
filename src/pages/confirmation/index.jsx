@@ -13,7 +13,7 @@ import {
 
 const ConfirmationPage = ({ firstname }) => {
   return (
-    <BoxDiv className={`bg-secondary ${styles.flexCenter}`}>
+    <BoxDiv className={`bg-white ${styles.flexCenter}`}>
         <TextDiv className={`bg-secondary w-[678px] h-[350px] mt-[100px] flex-col`}>
             <div className={``}>
                 {/* <BsFillArrowRightSquareFill className={`mt-[14%] text-[30px] text-primary leading-[76.8px] mr-10`} /> */}

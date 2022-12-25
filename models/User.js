@@ -1,5 +1,5 @@
 const mongoose = require(`mongoose`)
-const bcrypt = require(`bcryptjs`)
+const bcrypt = require(`bcrypt`)
 const jwt = require(`jsonwebtoken`)
 
 require(`dotenv`).config()
@@ -28,6 +28,10 @@ const UserSchema = new mongoose.Schema({
         required: [true, `Please enter a valid password.`],
         minlength: [8, `Minimum password length is 8 characters.`],
     },
+    emailToken: {
+        type: String,
+        default: ``,
+    }
 }, { timestamps: true })
 
 UserSchema.pre(`save`, async function (next) {
@@ -53,9 +57,27 @@ UserSchema.methods.createToken = function () {
 }
 
 
-UserSchema.methods.comparePasswords = async function(password) {
+UserSchema.methods.comparePasswords = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
 
+
+UserSchema.methods.createEmailToken = async function () {
+    try {
+        const expression = /[^A-Za-z0-9]/gi
+        
+        bcrypt.genSalt(10, (err, salt) => {
+            if (err) return false
+            bcrypt.hash(this.email, salt, (err, hash) => {
+                if (err) return false
+                hash = hash.replace(expression, ``)
+                this.emailToken = hash
+                return this.emailToken
+            })
+        })
+    } catch (error) {
+        return false
+    }
+}
 
 module.exports = mongoose.model(`Users`, UserSchema)

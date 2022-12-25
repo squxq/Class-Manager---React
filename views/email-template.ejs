@@ -9,13 +9,22 @@
                 </tr>
                 <tr>
                     <td align="center" style="padding: 0px 40px 40px 40px;">
-                        <h2 style="color: #171923; text-align: center;">
+                        <h2 style="text-align: center;">
                             Hello <%= firstname %> 
                         </h2>
                         <h3>
                             Thank You !!
                         </h3>
-                        <p>Your account has been successfuly activated!</p>
+                        <!-- <p>Your account has been successfuly activated!</p> -->
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div align="center" height="80" width="300" style="padding: 0px 15px 30px 15px;">
+                            <a href="http://localhost:5173/verification/<%= emailToken %>" style="background-color: transparent; border: 0; outline: 0; cursor: pointer;">
+                                <h2 style="letter-spacing: 0.05rem;">Activate your account !!</h2>
+                            </a>
+                        </div>
                     </td>
                 </tr>
             </table>

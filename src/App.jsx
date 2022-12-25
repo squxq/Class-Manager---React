@@ -5,6 +5,7 @@ import SignupPage from './pages/signup/signup.jsx'
 import LoginPage from './pages/login/'
 import ConfirmationPage from './pages/confirmation/index'
 import axios from 'axios'
+import VerificationPage from './pages/verification';
 
 const App = () => {
   const [homeData, setHomeData] = useState(false)
@@ -72,6 +73,18 @@ const App = () => {
 
     fetchData()
   }, [])
+
+  const [verificationData, setVerificationData] = useState(false)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await axios.get(`http://localhost:5000/verification/:token`)
+        .then((res) => setVerificationData(true))
+        .catch((err) => console.log(err))
+    }
+
+    fetchData()
+  }, [])
   
   return (
     <Router>
@@ -80,6 +93,7 @@ const App = () => {
         <Route path='/signup' element={ !signupData ? <h1>Loading...</h1> : <SignupPage /> } exact />
         <Route path='/login' element={ !loginData ? <h1>Loading...</h1> : <LoginPage /> } exact />
         <Route path='/confirmation/:id' element={ !confirmationData ? <h1>{ confirmationError }</h1> : <ConfirmationPage firstname = { firstname } />} exact />
+        <Route path='/verification/:token' element={ !verificationData ? <h1>Loading...</h1> : <VerificationPage />} exact />
       </Routes>
     </Router>
   )

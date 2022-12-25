@@ -33,8 +33,9 @@ const beforeAuthRouter = require(`./routes/before-auth`)
 app.use(`/`, beforeAuthRouter)
 
 // confirmation link
-const confirmationRouter = require(`./routes/confirmation`)
-app.use(`/`, confirmationRouter)
+const emailVerification = require(`./routes/confirmation`)
+app.use(`/`, emailVerification)
+
 
 // setting up the server
 const port = process.env.PORT || 5000
