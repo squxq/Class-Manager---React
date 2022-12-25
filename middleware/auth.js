@@ -22,8 +22,8 @@ const auth = async (req, res, next) => {
             })
         }
 
-        const { id, firstname, lastname } = decoded
-        req.user = { id, firstname, lastname }
+        const { id, firstname, email } = decoded
+        req.user = { id, firstname, email }
         next()
     } catch (error) {
         throw Error(error.message)

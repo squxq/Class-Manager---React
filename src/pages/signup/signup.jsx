@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useReducer } from 'react'
+import React, { useState } from 'react'
 import styles from '../../style.js'
 import '../signup.css'
 import axios from 'axios'

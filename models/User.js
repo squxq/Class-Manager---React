@@ -5,6 +5,10 @@ const jwt = require(`jsonwebtoken`)
 require(`dotenv`).config()
 
 const UserSchema = new mongoose.Schema({
+    active: {
+        type: Boolean,
+        default: false,
+    },
     firstname: {
         type: String,
         required: [true, `Please provide a valid first name.`],
@@ -41,7 +45,7 @@ UserSchema.methods.createToken = function () {
         {
             id: this._id,
             firstname: this.firstname,
-            lastname: this.lastname, 
+            email: this.email, 
         },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_LIFETIME_MINS | 0 }

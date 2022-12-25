@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Button from '../../components/button'
 import styles from '../../style'
 // import { BsFillArrowRightSquareFill } from 'react-icons/bs'
@@ -24,7 +24,8 @@ const ConfirmationPage = ({ firstname }) => {
             <P className={`${styles.paragraph} text-primary font-poppins`}>
                 A confirmation link was sent to your email.
             </P>
-            <Button className={`bg-primary text-secondary border-2 border-secondary font-poppins font-medium text-[26px] text-secondary ouline-none ${styles} rounded-[10px] flex flex-row ml-4 mr-4 py-2 px-4 indent-24`}>
+            <Button
+            className={`bg-primary text-secondary border-2 border-secondary font-poppins font-medium text-[26px] text-secondary ouline-none ${styles} rounded-[10px] flex flex-row ml-4 mr-4 py-2 px-4 indent-24`}>
                 Send Confirmation Link Again</Button>
         </TextDiv>
     </BoxDiv>
