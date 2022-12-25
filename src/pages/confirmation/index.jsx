@@ -11,17 +11,14 @@ import {
     P,
 } from './elements'
 
-const ConfirmationPage = () => {
-
-    
-
+const ConfirmationPage = ({ firstname }) => {
   return (
     <BoxDiv className={`bg-secondary ${styles.flexCenter}`}>
         <TextDiv className={`bg-secondary w-[678px] h-[350px] mt-[100px] flex-col`}>
             <div className={``}>
                 {/* <BsFillArrowRightSquareFill className={`mt-[14%] text-[30px] text-primary leading-[76.8px] mr-10`} /> */}
                 <H2 className={`${styles.heading2} text-primary font-poppins`}>
-                    Thank You!
+                    { !firstname ? `Thank You!!` : `Thank You ${firstname}!!`}
                 </H2>
             </div>
             <P className={`${styles.paragraph} text-primary font-poppins`}>
