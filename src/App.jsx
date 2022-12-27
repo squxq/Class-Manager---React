@@ -1,100 +1,24 @@
-import React, { useEffect, useState } from 'react'
+import React, { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/home'
-import SignupPage from './pages/signup/signup.jsx'
-import LoginPage from './pages/login/'
-import ConfirmationPage from './pages/confirmation/index'
-import axios from 'axios'
-import VerificationPage from './pages/verification';
+
+const Home = lazy(() => import('./pages/home'))
+const SignupPage = lazy(() => import('./pages/signup/signup.jsx'))
+const LoginPage = lazy(() => import('./pages/login/'))
+const ConfirmationPage = lazy(() => import('./pages/confirmation/index'))
+const VerificationPage = lazy(() => import('./pages/verification'))
 
 const App = () => {
-  const [homeData, setHomeData] = useState(false)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await axios.get(`http://localhost:5000/`, { withCredentials: false })
-        .then((res) => {
-          setHomeData(res.data.success)
-        })
-        .catch((err) => console.log(err))
-    }
-    
-    fetchData()
-  }, [])
-
-  const [signupData, setSignupData] = useState(false)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await axios.get(`http://localhost:5000/signup`, { withCredentials: false })
-        .then((res) => {
-          setSignupData(res.data.success)
-        })
-        .catch((err) => console.log(err))
-    }
-    
-    fetchData()
-  }, [])
-
-  const [loginData, setLoginData] = useState(false)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await axios.get(`http://localhost:5000/login`, { withCredentials: false })
-        .then((res) => {
-          setLoginData(res.data.success)
-        })
-        .catch((err) => console.log(err))
-    }
-    
-    fetchData()
-  }, [])
-
-  const [confirmationData, setConfirmationData] = useState(false)
-  const [confirmationError, setConfirmationError] = useState(``)
-  const [firstname, setFirstname] = useState(``)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await axios.get(`http://localhost:5000/confirmation/:id`, 
-      { withCredentials: true })
-        .then((res) => {
-          setConfirmationData(res.data.success)
-          setFirstname(res.data.firstname)
-        })
-        .catch(async (err) => {
-          try {
-            setConfirmationError(err.response.data.err)
-          } catch (error) {
-            console.log(err);
-          }
-        })
-    }
-
-    fetchData()
-  }, [])
-
-  const [verificationData, setVerificationData] = useState(false)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await axios.get(`http://localhost:5000/verification/:token`)
-        .then((res) => setVerificationData(true))
-        .catch((err) => console.log(err))
-    }
-
-    fetchData()
-  }, [])
-  
   return (
     <Router>
-      <Routes>
-        <Route path='/' element={ !homeData ? <h1>Loading...</h1> : <Home /> } exact />
-        <Route path='/signup' element={ !signupData ? <h1>Loading...</h1> : <SignupPage /> } exact />
-        <Route path='/login' element={ !loginData ? <h1>Loading...</h1> : <LoginPage /> } exact />
-        <Route path='/confirmation/:id' element={ !confirmationData ? <h1>{ confirmationError }</h1> : <ConfirmationPage firstname = { firstname } />} exact />
-        <Route path='/verification/:token' element={ !verificationData ? <h1>Loading...</h1> : <VerificationPage />} exact />
-      </Routes>
+      <Suspense fallback={<h1>Loading...</h1>}>
+        <Routes>
+          <Route path='/' element={ <Home /> } exact />
+          <Route path='/signup' element={ <SignupPage /> } exact />
+          <Route path='/login' element={ <LoginPage /> } exact />
+          <Route path='/confirmation/:id' element={ <ConfirmationPage />} exact />
+          <Route path='/verification/:token' element={ <VerificationPage />} exact />
+        </Routes>
+      </Suspense>
     </Router>
   )
 }

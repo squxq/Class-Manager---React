@@ -62,22 +62,4 @@ UserSchema.methods.comparePasswords = async function (password) {
 }
 
 
-UserSchema.methods.createEmailToken = async function () {
-    try {
-        const expression = /[^A-Za-z0-9]/gi
-        
-        bcrypt.genSalt(10, (err, salt) => {
-            if (err) return false
-            bcrypt.hash(this.email, salt, (err, hash) => {
-                if (err) return false
-                hash = hash.replace(expression, ``)
-                this.emailToken = hash
-                return this.emailToken
-            })
-        })
-    } catch (error) {
-        return false
-    }
-}
-
 module.exports = mongoose.model(`Users`, UserSchema)

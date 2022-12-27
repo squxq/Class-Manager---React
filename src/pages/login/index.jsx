@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from 'react'
+import React, { useState, useEffect } from 'react'
 import styles from '../../style.js'
 import '../signup.css'
 import axios from 'axios'
@@ -49,36 +49,55 @@ const LoginPage = () => {
       })
   }
 
-  return (
-    <div className={`${styles.flexCenter} min-h-screen body-class w-full bg-primary`}>
-      <BoxDiv className={`login-h`}>
-        <FormDiv onSubmit={ handleSubmit }>
-          <SignUpH2>
-            Log in
-          </SignUpH2>
-          <InputBox>
-            <input type="text" className={`input`}
-            onChange={(e) => setEmail(e.target.value)} />
-            <span className={!email ? `span` : `over`}>Email</span>
-            <i className={`i-tag`}></i>
-          </InputBox>
-            <span className={`error-span`}>{ errors["email"] }</span>
-          <InputBox>
-            <input type="text" className={`input`}
-            onChange={(e) => setPassword(e.target.value)} />
-            <span className={!password ? `span` : `over`}>Password</span>
-            <i className={`i-tag`}></i>
-          </InputBox>
-            <span className={`error-span`}>{ errors["password"] }</span>
-          <LinksDiv>
-              <ForgotPasswordLink>Forgot Password?</ForgotPasswordLink>
-                <LoginLink to="/signup">Sign Up</LoginLink>
-          </LinksDiv>
-          <button type="submit">Log In</button>
-        </FormDiv>
-      </BoxDiv>
-    </div>
-  )
+  const [loginData, setLoginData] = useState(false)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await axios.get(`http://localhost:5000/login`, { withCredentials: false })
+        .then((res) => {
+          setLoginData(res.data.success)
+        })
+        .catch((err) => console.log(err))
+    }
+    
+    fetchData()
+  }, [])
+
+  switch(loginData) {
+    case false:
+      return ( <h1>Loading...</h1> )
+    case true:
+      return (
+        <div className={`${styles.flexCenter} min-h-screen body-class w-full bg-primary`}>
+          <BoxDiv className={`login-h`}>
+            <FormDiv onSubmit={ handleSubmit }>
+              <SignUpH2>
+                Log in
+              </SignUpH2>
+              <InputBox>
+                <input type="text" className={`input`}
+                onChange={(e) => setEmail(e.target.value)} />
+                <span className={!email ? `span` : `over`}>Email</span>
+                <i className={`i-tag`}></i>
+              </InputBox>
+                <span className={`error-span`}>{ errors["email"] }</span>
+              <InputBox>
+                <input type="text" className={`input`}
+                onChange={(e) => setPassword(e.target.value)} />
+                <span className={!password ? `span` : `over`}>Password</span>
+                <i className={`i-tag`}></i>
+              </InputBox>
+                <span className={`error-span`}>{ errors["password"] }</span>
+              <LinksDiv>
+                  <ForgotPasswordLink>Forgot Password?</ForgotPasswordLink>
+                    <LoginLink to="/signup">Sign Up</LoginLink>
+              </LinksDiv>
+              <button type="submit">Log In</button>
+            </FormDiv>
+          </BoxDiv>
+        </div>
+      )
+  }
 }
 
 export default LoginPage
