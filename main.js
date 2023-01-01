@@ -6,18 +6,20 @@ const app = express()
 const cookieParser = require(`cookie-parser`)
 // const { StatusCodes } = require(`http-status-codes`)
 
-// no public assets to access by NOW !!!                    ---- Public Assets 
+// no public assets to access by NOW !!!                    ---- Public Assets
 
 // database
 const connectDB = require(`./db/connect.js`)
 
 const cors = require(`cors`)
-app.use(cors({
+app.use(
+  cors({
     origin: `http://localhost:5173`,
-    methods: 'GET,PATCH,POST,DELETE',
-    headers: 'Content-Type, Authorization, Cookie',
+    methods: "GET,PATCH,POST,DELETE",
+    headers: "Content-Type, Authorization, Cookie",
     credentials: true,
-}))
+  })
+)
 
 app.use(express.urlencoded({ extended: false }))
 // parse json
@@ -32,23 +34,36 @@ app.set(`view engine`, `ejs`)
 const beforeAuthRouter = require(`./routes/before-auth`)
 app.use(`/`, beforeAuthRouter)
 
-// confirmation link
+// email verification
 const emailVerification = require(`./routes/confirmation`)
 app.use(`/`, emailVerification)
 
+// layout routing
+const layoutRouter = require(`./routes/layout`)
+app.use(`/`, layoutRouter)
+
+// dashboard
+const dashboardRouter = require(`./routes/dashboard`)
+app.use(`/`, dashboardRouter)
+
+// calendar
+const calendarRouter = require(`./routes/calendar`)
+app.use(`/`, calendarRouter)
 
 // setting up the server
 const port = process.env.PORT || 5000
 
 const start = async () => {
-    try {
-        await connectDB(process.env.MONGODB_URI)
-        app.listen(port, () => {
-            console.log(`Server is connected to database and listening on port: ${port}...`);
-        })
-    } catch (error) {
-        console.log(`Something went wrong.`);
-    }
+  try {
+    await connectDB(process.env.MONGODB_URI)
+    app.listen(port, () => {
+      console.log(
+        `Server is connected to database and listening on port: ${port}...`
+      )
+    })
+  } catch (error) {
+    console.log(`Something went wrong.`)
+  }
 }
 
-start ()
+start()

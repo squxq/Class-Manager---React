@@ -4,7 +4,6 @@ const ejs = require(`ejs`)
 const path = require(`path`)
 const bcrypt = require(`bcrypt`)
 const User = require(`../models/User`)
-const { resolveMx } = require("dns/promises")
 
 const confirmation = async (req, res) => {
     const { id, firstname, email } = req.user

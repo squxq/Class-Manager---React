@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import styles from '../../style.js'
-import '../signup.css'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from "react"
+import styles from "../../style.js"
+import "../signup.css"
+import axios from "axios"
+import { useNavigate } from "react-router-dom"
 
 import {
   BoxDiv,
@@ -12,20 +12,16 @@ import {
   LinksDiv,
   ForgotPasswordLink,
   LoginLink,
-} from '../signup-elements.js'
-
+} from "../signup-elements.js"
 
 const LoginPage = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
   const [errors, setErrors] = useState({})
+  const [loginError, setLoginError] = useState(``)
 
   const navigate = useNavigate()
-
-  const storeAuth = (token, user) => {
-    localStorage.setItem("user", JSON.stringify(user))
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -37,12 +33,13 @@ const LoginPage = () => {
     })
       .then((res) => {
         const { user, token } = res.data
-        storeAuth(token, user)
-        navigate(`/dashboard`)
+        navigate(`/dashboard/${user}`)
       })
       .catch((err) => {
         if (err.response.data.errors) {
           setErrors(err.response.data.errors)
+        } else if (err.response.data.err) {
+          setLoginError(err.response.data.err)
         } else {
           console.log(err)
         }
@@ -53,44 +50,54 @@ const LoginPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await axios.get(`http://localhost:5000/login`, { withCredentials: false })
+      await axios
+        .get(`http://localhost:5000/login`, { withCredentials: false })
         .then((res) => {
           setLoginData(res.data.success)
         })
-        .catch((err) => console.log(err))
+        .catch((err) => {
+          console.log(err)
+        })
     }
-    
+
     fetchData()
   }, [])
 
-  switch(loginData) {
+  switch (loginData) {
     case false:
-      return ( <h1>Loading...</h1> )
+      return <h1>Loading...</h1>
     case true:
       return (
-        <div className={`${styles.flexCenter} min-h-screen body-class w-full bg-primary`}>
+        <div
+          className={`${styles.flexCenter} min-h-screen body-class w-full bg-primary`}
+        >
           <BoxDiv className={`login-h`}>
-            <FormDiv onSubmit={ handleSubmit }>
-              <SignUpH2>
-                Log in
-              </SignUpH2>
+            <FormDiv onSubmit={handleSubmit}>
+              <SignUpH2>Log in</SignUpH2>
               <InputBox>
-                <input type="text" className={`input`}
-                onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="text"
+                  className={`input`}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
                 <span className={!email ? `span` : `over`}>Email</span>
                 <i className={`i-tag`}></i>
               </InputBox>
-                <span className={`error-span`}>{ errors["email"] }</span>
+              <span className={`error-span`}>{errors["email"]}</span>
               <InputBox>
-                <input type="text" className={`input`}
-                onChange={(e) => setPassword(e.target.value)} />
+                <input
+                  type="text"
+                  className={`input`}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
                 <span className={!password ? `span` : `over`}>Password</span>
                 <i className={`i-tag`}></i>
               </InputBox>
-                <span className={`error-span`}>{ errors["password"] }</span>
+              <span className={`error-span`}>{errors["password"]}</span>
+              <span className={`error-span`}>{loginError}</span>
               <LinksDiv>
-                  <ForgotPasswordLink>Forgot Password?</ForgotPasswordLink>
-                    <LoginLink to="/signup">Sign Up</LoginLink>
+                <ForgotPasswordLink>Forgot Password?</ForgotPasswordLink>
+                <LoginLink to="/signup">Sign Up</LoginLink>
               </LinksDiv>
               <button type="submit">Log In</button>
             </FormDiv>
