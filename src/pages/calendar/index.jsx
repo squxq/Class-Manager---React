@@ -38,8 +38,8 @@ const Calendar = () => {
   const { id } = useParams()
 
   useEffect(() => {
-    const fetchData = () => {
-      axios({
+    const fetchData = async () => {
+      await axios({
         method: "get",
         url: `http://localhost:5000/calendar/${id}`,
       })
@@ -58,11 +58,6 @@ const Calendar = () => {
   const [startDate, setStartDate] = useState({})
   const [endDate, setEndDate] = useState({})
 
-  const handleSelect = (info) => {
-    const { start, end } = info
-    openModal()
-  }
-
   const [startValue, setStartValue] = useState(dayjs(new Date().toISOString()))
   const [endValue, setEndValue] = useState(
     dayjs(new Date(new Date().setHours(new Date().getDate() + 1)).toISOString())
@@ -73,7 +68,7 @@ const Calendar = () => {
     setIsOpen(true)
     setStartValue(new Date().toISOString())
     setEndValue(
-      new Date(new Date().setHours(new Date().getDate() + 1)).toISOString()
+      new Date(new Date().setHours(new Date().getHours() + 1)).toISOString()
     )
   }
   const closeModal = async () => {
@@ -97,14 +92,67 @@ const Calendar = () => {
         try {
           if (err.response.data.errors) {
             setPostEventErrors(err.response.data.errors)
+            setTimeout(() => {
+              setPostEventErrors({})
+            }, 3000);
           } else {
             console.log(err)
+            closeModal()
           }
-          closeModal()
         } catch (err) {
           console.log(err)
         }
       })
+  }
+
+  const [eventOpen, setEventOpen] = React.useState(false)
+  const closeEvent = async () => {
+    setEventOpen(false)
+    setEventTitle("")
+  }
+
+  const handleEvent = async (info) => {
+    const eventId = info.event._def.extendedProps._id
+    await axios({
+      method: 'get',
+      url: `http://localhost:5000/event/${eventId}`
+    }).then(async (res) => {
+      const { title, start, end } = res.data.event
+      console.log(title, start, end);
+      setEventTitle(title)
+      setStartValue(start)
+      setEndValue(end)
+      setEventOpen(true)
+    })
+    .catch((err) => console.log(err))
+  }
+
+  const updateEvent = async (info) => {
+    const eventId = info.event._def.extendedProps._id
+    await axios({
+      method: 'patch',
+      url: `http://localhost:5000/event/${eventId}`,
+      data: { eventTitle, startDate, endDate }
+    })
+      .then((res) => {
+        closeEvent()
+      })
+      .catch((err) => console.log(err))
+  }
+
+  const deleteEvent = async (info) => {
+    const eventId = info.event._def.extendedProps._id
+    await axios({
+      method: 'delte',
+      url: `http://localhost:5000/event/${eventId}`,
+      data: { eventTitle, startDate, endDate }
+    })
+      .then((res) => {
+        closeEvent()
+        const event = res.data.event
+        events.find((event))
+      })
+      .catch((err) => console.log(err))
   }
 
   switch (calendarData) {
@@ -116,8 +164,8 @@ const Calendar = () => {
           <FullCalendar
             ref={calendarRef}
             events={events}
-            select={handleSelect}
-            eventClick={(info) => console.log(info)}
+            dateClick={openModal}
+            eventClick={(info) => handleEvent(info)}
             plugins={[dayGridPlugin, timeGridPlugin, InteractionPlugin]}
             initialView="dayGridMonth"
             height="85.2vh"
@@ -160,10 +208,11 @@ const Calendar = () => {
                 <TextField
                   variant="outlined"
                   label={
-                    Object.keys(postEventErrors).length > 0
-                      ? postEventErrors["title"]
-                      : "Event Title"
+                    postEventErrors['title']
+                    ? postEventErrors['title']
+                    : 'Enter title'
                   }
+                  value={eventTitle}  
                   onChange={(e) => setEventTitle(e.target.value)}
                   style={{ margin: "15px" }}
                 />
@@ -204,6 +253,75 @@ const Calendar = () => {
                 style={{ marginTop: "5px" }}
               >
                 Create Event
+              </Button>
+            </ModalDiv>
+          </Modal>
+          <Modal
+            isOpen={eventOpen}
+            onRequestClose={closeEvent}
+            style={customStyles}
+            contentLabel="Example Modal"
+          >
+            <h1 style={{ margin: "0px 0px 5px 0px", textAlign: "center" }}>
+              Edit {eventTitle}
+            </h1>
+            <form display="flex">
+              <ModalDiv>
+                <TextField
+                  variant="outlined"
+                  label={
+                    postEventErrors['title']
+                    ? postEventErrors['title']
+                    : 'Enter title'
+                  }
+                  value={eventTitle}
+                  onChange={(e) => setEventTitle(e.target.value)}
+                  style={{ margin: "15px" }}
+                />
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker
+                    renderInput={(props) => (
+                      <TextField {...props} style={{ margin: "15px" }} />
+                    )}
+                    label="Start Date"
+                    value={startValue}
+                    inputFormat="DD/MM/YYYY hh:mm A"
+                    onChange={(newValue) => {
+                      setStartValue(newValue)
+                      setStartDate(newValue)
+                    }}
+                  />
+                </LocalizationProvider>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker
+                    renderInput={(props) => (
+                      <TextField {...props} style={{ margin: "15px" }} />
+                    )}
+                    label="End Date"
+                    value={endValue}
+                    inputFormat="DD/MM/YYYY hh:mm A"
+                    onChange={(newValue) => {
+                      setEndValue(newValue)
+                      setEndDate(newValue)
+                    }}
+                  />
+                </LocalizationProvider>
+              </ModalDiv>
+            </form>
+            <ModalDiv>
+              <Button
+                variant="outlined"
+                onClick={(info) => updateEvent(info)}
+                style={{ marginTop: "5px" }}
+              >
+                Update Event
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={(info) => deleteEvent(info)}
+                style={{ marginTop: "5px" }}
+              >
+                Delete Event
               </Button>
             </ModalDiv>
           </Modal>

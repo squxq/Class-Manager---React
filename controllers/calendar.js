@@ -60,7 +60,7 @@ const postEvent = async (req, res) => {
       }
       if (Object.keys(endDate).length === 0) {
         endDate = new Date(
-          new Date().setHours(new Date().getDate() + 1)
+          new Date().setHours(new Date().getHours() + 1)
         ).toISOString()
       }
       try {
@@ -88,4 +88,75 @@ const postEvent = async (req, res) => {
   }
 }
 
-module.exports = { getEvents, postEvent }
+const getSingleEvent = async (req, res) => {
+  try {
+    Events.findById(req.params.id, (err, event) => {
+      if (err) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: `Event not found.`
+        })
+      }
+      const {title, start, end} = event
+      res.status(StatusCodes.OK).json({
+        success: true,
+        event: {
+          title, 
+          start,
+          end
+        }
+      })
+    })
+  } catch (err) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      err: err.message
+    })
+  }
+}
+
+const patchEvent = async (req, res) => {
+  try {
+    const { eventTitle: title, eventStart: start, eventEnd: end } = req.body
+    Events.findOneAndUpdate({_id: req.params.id}, {
+      title, start, end
+    }, (err, event) => {
+      if (err) {
+        return res.status(StatusCodes).json({
+          success: false,
+          err: ``
+        })
+      }
+
+      res.status(StatusCodes).json({
+        success: false,
+        event
+      })
+    })
+  } catch (err) {
+    res.status(StatusCodes).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
+const deleteEvent = async (req, res) => {
+  try {
+    Events.findById(req.params.id, (err, event) => {
+      if (err) {
+        return res.status(StatusCodes).json({
+          success: false,
+          err: ``
+        })
+      }
+    })
+  } catch (err) {
+    res.status(StatusCodes).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
+module.exports = { getEvents, postEvent, getSingleEvent, patchEvent, deleteEvent }

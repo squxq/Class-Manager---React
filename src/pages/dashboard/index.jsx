@@ -20,7 +20,7 @@ const Layout = () => {
           setLayoutData(res.data.success)
           setUserId(res.data.userId)
         })
-        .catch((err) => console.error(err))
+        .catch((err) => console.log(err))
     }
 
     fetchData()
