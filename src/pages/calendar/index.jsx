@@ -94,7 +94,7 @@ const Calendar = () => {
             setPostEventErrors(err.response.data.errors)
             setTimeout(() => {
               setPostEventErrors({})
-            }, 3000);
+            }, 3000)
           } else {
             console.log(err)
             closeModal()
@@ -111,46 +111,50 @@ const Calendar = () => {
     setEventTitle("")
   }
 
+  const [eventSelected, setEventSelected] = useState("")
+
   const handleEvent = async (info) => {
     const eventId = info.event._def.extendedProps._id
     await axios({
-      method: 'get',
-      url: `http://localhost:5000/event/${eventId}`
-    }).then(async (res) => {
-      const { title, start, end } = res.data.event
-      console.log(title, start, end);
-      setEventTitle(title)
-      setStartValue(start)
-      setEndValue(end)
-      setEventOpen(true)
-    })
-    .catch((err) => console.log(err))
-  }
-
-  const updateEvent = async (info) => {
-    const eventId = info.event._def.extendedProps._id
-    await axios({
-      method: 'patch',
+      method: "get",
       url: `http://localhost:5000/event/${eventId}`,
-      data: { eventTitle, startDate, endDate }
     })
-      .then((res) => {
-        closeEvent()
+      .then(async (res) => {
+        const { _id, title, start, end } = res.data.event
+        setEventTitle(title)
+        setStartValue(start)
+        setEndValue(end)
+        setEventOpen(true)
+        setEventSelected(_id)
       })
       .catch((err) => console.log(err))
   }
 
-  const deleteEvent = async (info) => {
-    const eventId = info.event._def.extendedProps._id
+  const updateEvent = async () => {
     await axios({
-      method: 'delte',
-      url: `http://localhost:5000/event/${eventId}`,
-      data: { eventTitle, startDate, endDate }
+      method: "patch",
+      url: `http://localhost:5000/event/${eventSelected}`,
+      data: { eventTitle, startDate, endDate },
     })
       .then((res) => {
         closeEvent()
-        const event = res.data.event
-        events.find((event))
+        setEventSelected("")
+        const { events } = res.data
+        setEvents(events)
+      })
+      .catch((err) => console.log(err))
+  }
+
+  const deleteEvent = async () => {
+    await axios({
+      method: "delete",
+      url: `http://localhost:5000/event/${eventSelected}`,
+    })
+      .then((res) => {
+        closeEvent()
+        setEventSelected("")
+        const { events } = res.data
+        setEvents(events)
       })
       .catch((err) => console.log(err))
   }
@@ -208,11 +212,11 @@ const Calendar = () => {
                 <TextField
                   variant="outlined"
                   label={
-                    postEventErrors['title']
-                    ? postEventErrors['title']
-                    : 'Enter title'
+                    postEventErrors["title"]
+                      ? postEventErrors["title"]
+                      : "Enter title"
                   }
-                  value={eventTitle}  
+                  value={eventTitle}
                   onChange={(e) => setEventTitle(e.target.value)}
                   style={{ margin: "15px" }}
                 />
@@ -270,9 +274,9 @@ const Calendar = () => {
                 <TextField
                   variant="outlined"
                   label={
-                    postEventErrors['title']
-                    ? postEventErrors['title']
-                    : 'Enter title'
+                    postEventErrors["title"]
+                      ? postEventErrors["title"]
+                      : "Enter title"
                   }
                   value={eventTitle}
                   onChange={(e) => setEventTitle(e.target.value)}
@@ -311,14 +315,14 @@ const Calendar = () => {
             <ModalDiv>
               <Button
                 variant="outlined"
-                onClick={(info) => updateEvent(info)}
+                onClick={updateEvent}
                 style={{ marginTop: "5px" }}
               >
                 Update Event
               </Button>
               <Button
                 variant="outlined"
-                onClick={(info) => deleteEvent(info)}
+                onClick={deleteEvent}
                 style={{ marginTop: "5px" }}
               >
                 Delete Event

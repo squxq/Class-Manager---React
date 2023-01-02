@@ -3,6 +3,15 @@ require(`dotenv`).config()
 const { StatusCodes } = require(`http-status-codes`)
 const User = require(`../models/User`)
 
+const greetings = [
+  [22, "Good night"],
+  [18, "Good evening"],
+  [12, "Good afternoon"],
+  [7, "Good morning"],
+  [4, "Whoa, early bird"],
+  [0, "Working late"],
+]
+
 const layoutAuth = async (req, res, next) => {
   const token = req.cookies.token
 
@@ -43,10 +52,20 @@ const layoutAuth = async (req, res, next) => {
           err: `Account not active.`,
         })
       }
-      res.status(200).json({
-        success: true,
-        userId: id,
-      })
+
+      const hours = new Date().getHours()
+
+      mainLoop: for (let i = 0; i < greetings.length; i++) {
+        if (hours >= greetings[i][0]) {
+          const data = `${greetings[i][1]}, ${user.firstname} !!`
+          res.status(200).json({
+            success: true,
+            userId: id,
+            data,
+          })
+          break mainLoop
+        }
+      }
     })
   } catch (error) {
     res.status(StatusCodes.UNAUTHORIZED).json({

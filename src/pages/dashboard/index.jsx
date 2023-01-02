@@ -8,6 +8,7 @@ import axios from "axios"
 const Layout = () => {
   const [layoutData, setLayoutData] = useState(false)
   const [userId, setUserId] = useState(0)
+  const [data, setData] = useState()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,6 +20,7 @@ const Layout = () => {
         .then((res) => {
           setLayoutData(res.data.success)
           setUserId(res.data.userId)
+          setData(res.data.data)
         })
         .catch((err) => console.log(err))
     }
@@ -34,7 +36,7 @@ const Layout = () => {
         <Box display="flex" width="100%" height="100%">
           <Sidebar drawerWidth="300px" userId={userId} />
           <Box flexGrow={1} sx={{ backgroundColor: "#171923" }}>
-            <Navbar />
+            <Navbar data={data} />
             <Outlet />
           </Box>
         </Box>

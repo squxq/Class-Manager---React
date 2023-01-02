@@ -94,45 +94,62 @@ const getSingleEvent = async (req, res) => {
       if (err) {
         return res.status(StatusCodes.NOT_FOUND).json({
           success: false,
-          err: `Event not found.`
+          err: `Event not found.`,
         })
       }
-      const {title, start, end} = event
+      const { _id, title, start, end } = event
       res.status(StatusCodes.OK).json({
         success: true,
         event: {
-          title, 
+          _id,
+          title,
           start,
-          end
-        }
+          end,
+        },
       })
     })
   } catch (err) {
     res.status(StatusCodes.BAD_REQUEST).json({
       success: false,
-      err: err.message
+      err: err.message,
     })
   }
 }
 
 const patchEvent = async (req, res) => {
   try {
+    const { id } = req.params
     const { eventTitle: title, eventStart: start, eventEnd: end } = req.body
-    Events.findOneAndUpdate({_id: req.params.id}, {
-      title, start, end
-    }, (err, event) => {
-      if (err) {
-        return res.status(StatusCodes).json({
-          success: false,
-          err: ``
+    Events.findOneAndUpdate(
+      { _id: id },
+      {
+        title,
+        start,
+        end,
+      },
+      { new: true },
+      (err, event) => {
+        if (err) {
+          return res.status(StatusCodes).json({
+            success: false,
+            err: ``,
+          })
+        }
+        const { userId } = event
+        Events.find({ userId }, (err, events) => {
+          if (err) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              err: `Something went wrong, please try again later...`,
+            })
+          }
+          res.status(StatusCodes.OK).json({
+            success: true,
+            events,
+          })
         })
       }
-
-      res.status(StatusCodes).json({
-        success: false,
-        event
-      })
-    })
+    )
   } catch (err) {
     res.status(StatusCodes).json({
       success: false,
@@ -143,14 +160,33 @@ const patchEvent = async (req, res) => {
 
 const deleteEvent = async (req, res) => {
   try {
-    Events.findById(req.params.id, (err, event) => {
-      if (err) {
-        return res.status(StatusCodes).json({
-          success: false,
-          err: ``
+    const { id } = req.params
+    Events.findOneAndDelete(
+      {
+        _id: id,
+      },
+      (err, event) => {
+        if (err) {
+          return res.status(StatusCodes).json({
+            success: false,
+            err: ``,
+          })
+        }
+        const { userId } = event
+        Events.find({ userId }, (err, events) => {
+          if (err) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              err: `Something went wrong, please try again later.`,
+            })
+          }
+          res.status(StatusCodes.OK).json({
+            success: true,
+            events,
+          })
         })
       }
-    })
+    )
   } catch (err) {
     res.status(StatusCodes).json({
       success: false,
@@ -159,4 +195,10 @@ const deleteEvent = async (req, res) => {
   }
 }
 
-module.exports = { getEvents, postEvent, getSingleEvent, patchEvent, deleteEvent }
+module.exports = {
+  getEvents,
+  postEvent,
+  getSingleEvent,
+  patchEvent,
+  deleteEvent,
+}

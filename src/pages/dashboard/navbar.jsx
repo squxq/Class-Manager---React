@@ -22,7 +22,7 @@ import {
 } from "@mui/icons-material"
 import { MdWavingHand } from "react-icons/md"
 
-const Navbar = () => {
+const Navbar = ({ data }) => {
   return (
     <AppBar
       sx={{
@@ -42,7 +42,7 @@ const Navbar = () => {
             position="relative"
           >
             <Typography variant="h5" display="flex">
-              Good Morning, Francisco
+              {data}
             </Typography>
             <MdWavingHand
               position="absolute"
