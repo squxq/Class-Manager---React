@@ -10,27 +10,27 @@ import {
   TrendingUpOutlined,
   PieChartOutlined,
   ReceiptLongOutlined,
+  FormatListNumbered,
+  Group,
+  SchoolOutlined,
+  SettingsOutlined,
 } from "@mui/icons-material"
 
 const navItems = [
   {
-    text: "Dashboard",
-    icon: <HomeOutlined />,
+    text: "Calendar",
+    icon: <CalendarMonthOutlined />,
   },
   {
-    text: "Client Facing",
+    text: "Schooling Info",
     icon: null,
   },
   {
-    text: "Products",
-    icon: <ShoppingCartOutlined />,
-  },
-  {
-    text: "Customers",
+    text: "Classes",
     icon: <Groups2Outlined />,
   },
   {
-    text: "Transactions",
+    text: "Summaries",
     icon: <ReceiptLongOutlined />,
   },
   {
@@ -38,7 +38,7 @@ const navItems = [
     icon: <PublicOutlined />,
   },
   {
-    text: "Sales",
+    text: "Grades",
     icon: null,
   },
   {
@@ -50,24 +50,16 @@ const navItems = [
     icon: <TodayOutlined />,
   },
   {
-    text: "Calendar",
-    icon: <CalendarMonthOutlined />,
-  },
-  {
     text: "Breakdown",
     icon: <PieChartOutlined />,
   },
   {
-    text: "Management",
+    text: null,
     icon: null,
   },
   {
-    text: "Admin",
-    icon: <AdminPanelSettingsOutlined />,
-  },
-  {
-    text: "Performance",
-    icon: <TrendingUpOutlined />,
+    text: "Account Settings",
+    icon: <SettingsOutlined />,
   },
 ]
 

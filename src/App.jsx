@@ -7,8 +7,8 @@ const LoginPage = lazy(() => import("./pages/login/"))
 const ConfirmationPage = lazy(() => import("./pages/confirmation/index"))
 const VerificationPage = lazy(() => import("./pages/verification"))
 const Layout = lazy(() => import("./pages/dashboard"))
-const Dashboard = lazy(() => import("./pages/dashboard/dashboard"))
 const Calendar = lazy(() => import("./pages/calendar"))
+const Classes = lazy(() => import("./pages/classes"))
 
 const App = () => {
   return (
@@ -29,8 +29,8 @@ const App = () => {
             exact
           />
           <Route element={<Layout />}>
-            <Route path="/dashboard/:id" element={<Dashboard />} exact />
             <Route path="/calendar/:id" element={<Calendar />} exact />
+            <Route path="/classes/:id" element={<Classes />} exact />
           </Route>
         </Routes>
       </Suspense>

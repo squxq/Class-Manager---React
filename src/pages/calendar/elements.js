@@ -108,6 +108,16 @@ const StyledWrapper = styled.div`
     cursor: default;
   }
 
+  .fc-timegrid-now-indicator-line {
+    border-color: #f6f6f6 !important;
+  }
+
+  .fc-timegrid-now-indicator-arrow {
+    border-color: #f6f6f6 !important;
+    border-bottom-color: transparent !important;
+    border-top-color: transparent !important;
+  }
+
   /* SCROLLBAR - END - */
   margin: 2.5rem;
   background-color: #171923;

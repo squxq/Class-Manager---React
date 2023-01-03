@@ -33,7 +33,7 @@ const LoginPage = () => {
     })
       .then((res) => {
         const { user, token } = res.data
-        navigate(`/dashboard/${user}`)
+        navigate(`/calendar/${user}`)
       })
       .catch((err) => {
         if (err.response.data.errors) {

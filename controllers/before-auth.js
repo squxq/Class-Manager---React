@@ -88,6 +88,19 @@ const signup = async (req, res) => {
   }
 }
 
+const logout = async (req, res) => {
+  try {
+    res.status(StatusCodes.OK).cookie("token", "", { maxAge: 1 }).json({
+      success: true,
+    })
+  } catch (err) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
 // Exports
 module.exports = {
   home,
@@ -95,4 +108,5 @@ module.exports = {
   signupGet,
   login,
   signup,
+  logout,
 }

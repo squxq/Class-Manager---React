@@ -42,13 +42,13 @@ app.use(`/`, emailVerification)
 const layoutRouter = require(`./routes/layout`)
 app.use(`/`, layoutRouter)
 
-// dashboard
-const dashboardRouter = require(`./routes/dashboard`)
-app.use(`/`, dashboardRouter)
-
 // calendar
 const calendarRouter = require(`./routes/calendar`)
 app.use(`/`, calendarRouter)
+
+// classes
+const classesRouter = require(`./routes/classes`)
+app.use(`/`, classesRouter)
 
 // setting up the server
 const port = process.env.PORT || 5000

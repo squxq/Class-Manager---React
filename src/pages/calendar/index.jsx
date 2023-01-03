@@ -171,12 +171,12 @@ const Calendar = () => {
             dateClick={openModal}
             eventClick={(info) => handleEvent(info)}
             plugins={[dayGridPlugin, timeGridPlugin, InteractionPlugin]}
-            initialView="dayGridMonth"
-            height="85.2vh"
+            initialView="timeGridWeek"
+            height="84.6vh"
             headerToolbar={{
               left: "prev next",
               center: "title",
-              right: "dayGridMonth timeGridWeek",
+              right: "timeGridWeek dayGridMonth",
             }}
             editable
             selectable
@@ -192,11 +192,15 @@ const Calendar = () => {
                   month: "long",
                   day: "numeric",
                 },
+                dayHeaderFormat: { weekday: "short", day: "2-digit" },
+                slotLabelFormat: { hour: "numeric" },
               },
             }}
             displayEventTime={true}
             eventDisplay="block"
             eventColor="#3AAFA9"
+            nowIndicator={true}
+            scrollTime={new Date().toISOString().split("T")[1].split(".")[0]}
           />
           <Modal
             isOpen={modalIsOpen}

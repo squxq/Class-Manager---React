@@ -11,16 +11,24 @@ import {
   ListItemText,
   Typography,
   useTheme,
+  Button,
+  Menu,
+  MenuItem,
 } from "@mui/material"
 import {
   SettingsOutlined,
   ChevronLeft,
   ChevronRightOutlined,
+  ArrowDropDown,
+  LogoutOutlined,
 } from "@mui/icons-material"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import FlexBetween from "./FlexBetween"
 import navItems from "./data"
+
+import profilePicture from "../../assets/pfp.jpg"
+import axios from "axios"
 
 const Sidebar = ({ drawerWidth, userId }) => {
   const navigate = useNavigate()
@@ -28,8 +36,28 @@ const Sidebar = ({ drawerWidth, userId }) => {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    setActive("dashboard")
+    setActive("calendar")
   }, [pathname])
+
+  const [anchorEl, setAnchorEl] = React.useState(null)
+  const open = Boolean(anchorEl)
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = async () => {
+    setAnchorEl(null)
+    await axios({
+      method: "get",
+      url: `http://localhost:5000/logout`,
+      withCredentials: true,
+    })
+      .then((res) => {
+        console.log(res)
+        navigate(`/`)
+      })
+      .catch((err) => console.log(err))
+  }
 
   return (
     <Box component="nav">
@@ -107,38 +135,82 @@ const Sidebar = ({ drawerWidth, userId }) => {
           </List>
         </Box>
 
-        {/* <Box position="absolute" bottom="2rem">
-            <Divider />
-            <FlexBetween textTransform="none" gap="1rem" m="1.5rem 2rem 0 3rem">
+        <Box
+          position="absolute"
+          bottom="1.5rem"
+          style={{
+            width: "100%",
+            justifyContent: "center",
+            alignContent: "center",
+          }}
+        >
+          <Menu
+            id="demo-positioned-menu"
+            aria-labelledby="demo-positioned-button"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            anchorOrigin={{
+              vertical: "top",
+              horizontal: "left",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "left",
+            }}
+            sx={{ left: "8px" }}
+          >
+            <MenuItem onClick={handleClose} style={{ fontSize: "1rem" }}>
+              <LogoutOutlined style={{ marginRight: "5px" }} />
+              Logout&nbsp;&nbsp;&nbsp;&nbsp;
+            </MenuItem>
+          </Menu>
+          <Divider style={{ backgroundColor: "#f6f6f6" }} variant="middle" />
+          <FlexBetween textTransform="none" gap="3rem" m="1.5rem 2rem 0 3.5rem">
+            <Button
+              onClick={handleClick}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                textTransform: "none",
+                gap: "1rem",
+                borderRadius: "1rem",
+              }}
+            >
               <Box
                 component="img"
-                alt="profile"
-                src={profileImage}
-                height="40px"
-                width="40px"
+                alt="pfp"
+                src={profilePicture}
+                height="42px"
+                width="42px"
                 borderRadius="50%"
                 sx={{ objectFit: "cover" }}
               />
               <Box textAlign="left">
                 <Typography
                   fontWeight="bold"
-                  fontSize="0.9rem"
-                  sx={{ color: theme.palette.secondary[100] }}
+                  fontSize="0.85rem"
+                  sx={{ color: "#f6f6f6", fontSize: "1rem" }}
                 >
-                  {user.name}
+                  {/* {user.name} */} Francisco
                 </Typography>
                 <Typography
-                  fontSize="0.8rem"
-                  sx={{ color: theme.palette.secondary[200] }}
+                  fontSize="0.75rem"
+                  sx={{ color: "#f6f6f6", fontSize: "0.85rem" }}
                 >
-                  {user.occupation}
+                  {/* {user.occupation} */} Professor
                 </Typography>
               </Box>
-              <SettingsOutlined
-                sx={{ color: theme.palette.secondary[300], fontSize: "25px" }}
+              <ArrowDropDown
+                sx={{
+                  color: "#f6f6f6",
+                  fontSize: "25px",
+                }}
               />
-            </FlexBetween>
-          </Box> */}
+            </Button>
+          </FlexBetween>
+        </Box>
       </Drawer>
     </Box>
   )

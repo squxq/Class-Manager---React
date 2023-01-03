@@ -19,10 +19,37 @@ import {
   Search,
   SettingsOutlined,
   ArrowDropDown,
+  LogoutOutlined,
 } from "@mui/icons-material"
 import { MdWavingHand } from "react-icons/md"
 
+import profilePicture from "../../assets/pfp.jpg"
+import axios from "axios"
+import { useNavigate } from "react-router-dom"
+
 const Navbar = ({ data }) => {
+  const [anchorEl, setAnchorEl] = React.useState(null)
+  const open = Boolean(anchorEl)
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const navigate = useNavigate()
+
+  const handleClose = async () => {
+    setAnchorEl(null)
+    await axios({
+      method: "get",
+      url: `http://localhost:5000/logout`,
+      withCredentials: true,
+    })
+      .then((res) => {
+        console.log(res)
+        navigate(`/`)
+      })
+      .catch((err) => console.log(err))
+  }
+
   return (
     <AppBar
       sx={{
@@ -31,7 +58,7 @@ const Navbar = ({ data }) => {
         boxShadow: `none`,
       }}
     >
-      <Toolbar sx={{ justifyContent: `space-between` }}>
+      <Toolbar sx={{ justifyContent: `space-between`, marginTop: "5px" }}>
         {/* Left Side */}
         <FlexBetween>
           <FlexBetween
@@ -54,25 +81,26 @@ const Navbar = ({ data }) => {
 
         {/* Right Side */}
         <FlexBetween gap="1.5rem">
-          {/* Light and dark mode button place */}
           <IconButton>
             <SettingsOutlined sx={{ fontSize: "25px", color: "#f6f6f6" }} />
           </IconButton>
-          {/* <FlexBetween>
+          <FlexBetween>
             <Button
-              onClick={handleClick}
+              // onClick={handleClick}
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
                 textTransform: "none",
                 gap: "1rem",
+                borderRadius: "1rem",
               }}
+              onClick={handleClick}
             >
-            <Box
+              <Box
                 component="img"
-                alt="profile"
-                src={profileImage}
+                alt="pfp"
+                src={profilePicture}
                 height="32px"
                 width="32px"
                 borderRadius="50%"
@@ -82,36 +110,43 @@ const Navbar = ({ data }) => {
                 <Typography
                   fontWeight="bold"
                   fontSize="0.85rem"
-                  sx={{ color: theme.palette.secondary[100] }}
+                  sx={{ color: "#f6f6f6" }}
                 >
-                  {user.name}
+                  {/* {user.name} */} Francisco
                 </Typography>
-                <Typography
-                  fontSize="0.75rem"
-                  sx={{ color: theme.palette.secondary[200] }}
-                >
-                  {user.occupation}
+                <Typography fontSize="0.75rem" sx={{ color: "#f6f6f6" }}>
+                  {/* {user.occupation} */} Professor
                 </Typography>
               </Box>
               <ArrowDropDown
                 sx={{
-                  color: theme.palette.secondary[300],
+                  color: "#f6f6f6",
                   fontSize: "25px",
                 }}
               />
-              <SettingsOutlined
-                sx={{ color: theme.palette.secondary[300], fontSize: "25px" }}
-              />
             </Button>
             <Menu
+              id="demo-positioned-menu"
+              aria-labelledby="demo-positioned-button"
               anchorEl={anchorEl}
-              open={isOpen}
+              open={open}
               onClose={handleClose}
-              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              style={{ left: "8px", fontSize: "0.8rem" }}
             >
-              <MenuItem onClick={handleClose}>Log Out</MenuItem>
+              <MenuItem onClick={handleClose}>
+                <LogoutOutlined style={{ marginRight: "5px" }} />
+                Logout
+              </MenuItem>
             </Menu>
-          </FlexBetween> */}
+          </FlexBetween>
         </FlexBetween>
       </Toolbar>
     </AppBar>
