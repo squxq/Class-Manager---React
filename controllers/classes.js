@@ -350,9 +350,19 @@ const deleteStudent = async (req, res) => {
               err: err.message,
             })
           }
+
+          const students = selectedClass.students.map((student) => {
+            return {
+              id: student._id,
+              firstName: student.firstname,
+              lastName: student.lastname,
+              email: student.email,
+            }
+          })
+
           res.status(StatusCodes.OK).json({
             success: true,
-            students: newClass.students,
+            students,
           })
         }
       )

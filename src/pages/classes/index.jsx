@@ -347,7 +347,10 @@ const Classes = () => {
         studentId: params.row.id,
       },
     })
-      .then((res) => console.log(res))
+      .then((res) => {
+        console.log(res)
+        setAllStudents(res.data.students)
+      })
       .catch((err) => console.log(err))
   }
 
@@ -388,6 +391,9 @@ const Classes = () => {
                     margin: "0rem 1rem",
                     backgroundColor: "#3AAFA9",
                     color: "#f6f6f6",
+                    "&:hover": {
+                      backgroundColor: "rgb(58, 175, 169, 0.7)",
+                    },
                   }}
                   onClick={() => {
                     setIsOpen(true)
@@ -402,6 +408,9 @@ const Classes = () => {
                     margin: "0rem 1rem",
                     backgroundColor: "#3AAFA9",
                     color: "#f6f6f6",
+                    "&:hover": {
+                      backgroundColor: "rgb(58, 175, 169, 0.7)",
+                    },
                   }}
                 >
                   <FilterListOutlined />
@@ -604,7 +613,11 @@ const Classes = () => {
                     fontFamily: "Poppins",
                   },
                   "& .MuiDataGrid-cell": {
-                    borderBottom: "none",
+                    border: "none !important",
+                  },
+                  "& .Mui-selected": {
+                    border: "none !important",
+                    backgroundColor: "rgb(58, 175, 169, 0.2) !important",
                   },
                   "& .MuiDataGrid-columnHeaders": {
                     backgroundColor: "#171923",
@@ -675,6 +688,14 @@ const Classes = () => {
                           <Button
                             onClick={(e) => handleRemoveStudent(e, params)}
                             variant="contained"
+                            sx={{
+                              margin: "0rem 1rem",
+                              backgroundColor: "#3AAFA9",
+                              color: "#f6f6f6",
+                              "&:hover": {
+                                backgroundColor: "rgb(58, 175, 169, 0.7)",
+                              },
+                            }}
                           >
                             Remove
                           </Button>
