@@ -2,21 +2,28 @@ const mongoose = require("mongoose")
 
 const ClassSchema = new mongoose.Schema(
   {
-    grade: {
-      type: Number,
-      required: [true, "A class must have a grade."],
-    },
-    letter: {
+    name: {
       type: String,
-      required: [true, "A class must have a letter."],
+      required: [true, "A class must have a name."],
     },
-    teachers: {
-      type: Array,
-      required: [true, "A class must have at least one teacher."],
+    status: {
+      type: String,
+      required: [true, "Please provide a status for the class."],
+      enum: {
+        values: ["Active", "Inactive"],
+        message: ["{VALUE} is not a valid status."],
+      },
+    },
+    teacher: {
+      type: mongoose.ObjectId,
+      required: [true, "A class must have a teacher."],
     },
     students: {
       type: Array,
-      required: [true, "A class must have at least one student."],
+      validate: [
+        (v) => Array.isArray(v) && v.length > 0,
+        "A class must have at least one student.",
+      ],
     },
   },
   { timestamps: true }

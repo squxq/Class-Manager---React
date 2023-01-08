@@ -13,6 +13,7 @@
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.2",
     "@mui/system": "^5.11.2",
+    "@mui/x-data-grid": "^5.17.18",
     "@mui/x-date-pickers": "^5.0.12",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
@@ -38,6 +39,7 @@
     "react-router-dom": "^6.5.0",
     "react-scripts": "5.0.1",
     "react-scroll": "^1.8.9",
+    "react-window": "^1.8.8",
     "styled-components": "^5.3.6",
     "web-vitals": "^2.1.4"
   },

@@ -1,48 +1,660 @@
-import { Box, Typography } from "@mui/material"
 import React, { useEffect, useState } from "react"
 import axios from "axios"
-import { useParams } from "react-router-dom"
+import Modal from "react-modal"
+import { useParams, useSearchParams } from "react-router-dom"
+import {
+  Box,
+  Typography,
+  Card,
+  CardActionArea,
+  CardContent,
+  Button,
+  TextField,
+  List,
+  ListItemButton,
+  ListItemText,
+  Radio,
+  RadioGroup,
+  FormControl,
+  FormControlLabel,
+} from "@mui/material"
+import { FilterListOutlined, PeopleAlt, SingleBed } from "@mui/icons-material"
+import { DataGrid } from "@mui/x-data-grid"
+import { Search } from "@mui/icons-material"
+import { IconButton, InputAdornment } from "@mui/material"
+import { GridToolbarContainer, GridToolbarExport } from "@mui/x-data-grid"
+import { styled } from "@mui/system"
+
+const columns = [
+  {
+    field: "firstName",
+    headerName: "First Name",
+    flex: 1,
+  },
+  {
+    field: "lastName",
+    headerName: "Last Name",
+    flex: 1,
+  },
+  {
+    field: "email",
+    headerName: "Email",
+    flex: 1,
+  },
+]
+
+const customStyles = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+    zIndex: "9999",
+    width: "40%",
+  },
+  overlay: { zIndex: 1000, backgroundColor: "rgb(23,25,35, 0.4)" },
+}
+const classStyles = {
+  content: {
+    height: "800px !important",
+    width: "1600px !important",
+    top: "10%",
+    left: "58%",
+    right: "auto",
+    bottom: "auto",
+    transform: "translate(-50%)",
+    zIndex: "9999",
+    width: "80%",
+    backgroundColor: "#171923",
+    maxHeight: "85%",
+    maxWidht: "80%",
+  },
+  overlay: { zIndex: 1000, backgroundColor: "rgb(23,25,35, 0.4)" },
+}
+
+const ClassCard = ({ classId, name, status, students, customClickEvent }) => {
+  return (
+    <Card
+      sx={{
+        backgroundImage: "none",
+        backgroundColor: "#171923",
+        borderRadius: "0.55rem",
+        borderColor: "#3AAFA9",
+        borderWidth: "2px",
+        margin: "0rem 5rem 2rem 5rem",
+        cursor: "pointer",
+        maxHeight: "325px",
+      }}
+    >
+      <CardActionArea
+        sx={{ height: "100%" }}
+        onClick={() => customClickEvent(classId)}
+      >
+        <CardContent>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography variant="h2" component="div" sx={{ color: "#f6f6f6" }}>
+              {name}
+            </Typography>
+            <Typography
+              sx={{ fontSize: "1.5rem" }}
+              color="#F6F6F6"
+              gutterBottom
+              margin="1.1rem"
+            >
+              {status}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              // justifyContent: "center",
+              alignContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="h5" sx={{ color: "#f6f6f6" }}>
+              Number of Students:
+            </Typography>
+            <Typography
+              sx={{ fontSize: "1.5rem" }}
+              color="#F6F6F6"
+              gutterBottom
+              margin="1rem 0.4rem 1.3rem 1rem"
+            >
+              <PeopleAlt />
+            </Typography>
+            <Typography variant="h5" sx={{ color: "#f6f6f6" }}>
+              {students}
+            </Typography>
+          </Box>
+          <Typography></Typography>
+        </CardContent>
+      </CardActionArea>
+    </Card>
+  )
+}
+
+Modal.setAppElement("#root")
+
+const FlexBetween = styled(Box)({
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+})
+
+const CssTextField = styled(TextField)({
+  "& label.Mui-focused": {
+    color: "#f6f6f6",
+  },
+  "& .MuiInput-underline:hover": {
+    borderBottomColor: "#f6f6f6",
+    borderColor: "#f6f6f6",
+  },
+  "& .MuiInput-underline:before": {
+    borderBottomColor: "#f6f6f6",
+    borderColor: "#f6f6f6",
+  },
+  "& .MuiInput-underline:after": {
+    borderBottomColor: "#3AAFA9",
+    borderColor: "#f6f6f6",
+  },
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "#3AAFA9",
+    },
+    "&:hover fieldset": {
+      borderColor: "#3AAFA9",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#3AAFA9",
+    },
+  },
+})
+
+const DataGridCustomToolbar = ({ searchInput, setSearchInput, setSearch }) => {
+  return (
+    <GridToolbarContainer>
+      <FlexBetween width="100%">
+        <FlexBetween>
+          <Box>
+            <GridToolbarExport sx={{ color: "#3AAFA9", fontSize: "1.25rem" }} />
+            <Button
+              variant="text"
+              sx={{ color: "#3AAFA9", fontSize: "1.25rem", marginLeft: "2rem" }}
+            >
+              + Add New
+            </Button>
+          </Box>
+        </FlexBetween>
+        <Box>
+          <CssTextField
+            label="Search..."
+            sx={{
+              mb: "0.5rem",
+              width: "15rem",
+              input: { color: "#f6f6f6" },
+              label: { color: "#f6f6f6" },
+              fontSize: "1.25rem",
+            }}
+            onChange={(e) => setSearchInput(e.target.value)}
+            value={searchInput}
+            variant="standard"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => {
+                      setSearch(searchInput)
+                      setSearchInput("")
+                    }}
+                    sx={{ color: "#f6f6f6" }}
+                  >
+                    <Search sx={{ color: "#f6f6f6" }} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+      </FlexBetween>
+    </GridToolbarContainer>
+  )
+}
 
 const Classes = () => {
+  const [classData, setClassData] = useState(false)
   const [allClasses, setAllClasses] = useState([])
 
   const { id } = useParams()
 
   useEffect(() => {
     const fetchData = async () => {
-      await axios
-        .get({
-          method: "get",
-          url: `http://localhost:5000/classes/${id}`,
+      await axios({
+        method: "get",
+        url: `http://localhost:5000/classes/${id}`,
+      })
+        .then((res) => {
+          setClassData(true)
+          setAllClasses(res.data.classes)
         })
-        .then((res) => console.log(res))
-        .catch((err) => console.error(err))
+        .catch((err) => console.log(err))
     }
 
     fetchData()
   }, [])
 
-  return (
-    <Box style={{ margin: "2.5rem" }}>
-      <Box>
-        <Typography variant="h4" color="#f6f6f6" fontWeight="bold">
-          See your list of classes below.
-        </Typography>
-        <Box
-          style={{
-            marginTop: "20px",
-            display: "grid",
-            justifyContent: "space-between",
-            backgroundColor: "#171923",
-            height: "78.2vh",
-          }}
-          gridTemplateColumns="repeat(4, minmax(0, 1fr))"
-          rowGap="20px"
-          columnGap="1.33%"
-        ></Box>
-      </Box>
-    </Box>
-  )
+  const [isOpen, setIsOpen] = useState(false)
+
+  const [className, setClassName] = useState("")
+  const [students, setStudents] = useState(false)
+  const [studentsStatus, setStudentsStatus] = useState("Active")
+  const [studentsArray, setStudentsArray] = useState([])
+  const [createClassErrors, setCreateClassErrors] = useState({})
+  const [studentsId, setStudentsId] = useState([])
+
+  const handleSubmit = async () => {
+    await axios({
+      method: "post",
+      url: `http://localhost:5000/classes/${id}`,
+      data: { className, studentsStatus, studentsId },
+    })
+      .then((res) => {
+        setIsOpen(false)
+        setClassName("")
+        console.log(res.data.classes)
+        console.log(res.data.classes)
+        setAllClasses(res.data.classes)
+      })
+      .catch(async (err) => {
+        try {
+          if (err.response.data.errors) {
+            setCreateClassErrors(err.response.data.errors)
+            setTimeout(() => {
+              setCreateClassErrors({})
+            }, 3000)
+          } else {
+            console.log(err)
+            setIsOpen(false)
+          }
+        } catch (err) {
+          console.log(err)
+        }
+      })
+  }
+
+  const [selectedClassModal, setSelectedClassModal] = useState(false)
+  const [buttonsOpen, setButtonsOpen] = useState(true)
+  const [search, setSearch] = useState("")
+
+  const [searchInput, setSearchInput] = useState("")
+
+  const [selectedClassData, setSelectedClassData] = useState({})
+  const [rowCount, setRowCount] = useState(0)
+
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const handleClassClick = async (id) => {
+    await axios({
+      method: "get",
+      url: `http://localhost:5000/class/${id}`,
+    })
+      .then(async (res) => {
+        await axios({
+          method: "get",
+          url: `http://localhost:5000/students`,
+        })
+          .then((res) => {
+            console.log(res)
+            setAllStudents(res.data.students)
+            setRowCount(res.data.total)
+          })
+          .catch((err) => console.log(err))
+        setButtonsOpen(false)
+        setSelectedClassModal(true)
+        setSelectedClassData(res.data.class)
+        setSearchParams({ id })
+      })
+      .catch((err) => console.log(err))
+  }
+
+  const [allStudents, setAllStudents] = useState([])
+
+  const getAllStudents = async () => {
+    await axios({
+      method: "get",
+      url: `http://localhost:5000/students`,
+    })
+      .then((res) => {
+        console.log(res)
+        setAllStudents(res.data.students)
+      })
+      .catch((err) => console.log(err))
+  }
+
+  switch (classData) {
+    case false:
+      return <div>Something went wrong please try again later...</div>
+    case true:
+      return (
+        <Box style={{ margin: "1.37rem" }}>
+          <Box>
+            <Box
+              margin="2rem 2rem 2rem 2rem"
+              sx={{
+                justifyContent: "space-between",
+                display: "flex",
+              }}
+            >
+              <Typography variant="h4" color="#f6f6f6" fontWeight="bold">
+                See your list of classes below.
+              </Typography>
+              <Box
+                display="inline-flex"
+                style={{
+                  margin: 0,
+                  padding: 0,
+                  boxSizing: "border-box",
+                }}
+              >
+                <Button
+                  variant="contained"
+                  sx={{
+                    margin: "0rem 1rem",
+                    backgroundColor: "#3AAFA9",
+                    color: "#f6f6f6",
+                  }}
+                  onClick={() => {
+                    setIsOpen(true)
+                    getAllStudents()
+                  }}
+                >
+                  Create
+                </Button>
+                <Button
+                  variant="contained"
+                  sx={{
+                    margin: "0rem 1rem",
+                    backgroundColor: "#3AAFA9",
+                    color: "#f6f6f6",
+                  }}
+                >
+                  <FilterListOutlined />
+                  Filters
+                </Button>
+              </Box>
+            </Box>
+            <Box
+              style={{
+                marginTop: "20px",
+                display: "grid",
+                justifyContent: "space-between",
+                backgroundColor: "#171923",
+                height: "74.9vh",
+              }}
+              gridTemplateColumns="repeat(3, minmax(0, 1fr))"
+              rowGap="10px"
+              columnGap="1.33%"
+            >
+              {allClasses.map(({ key, name, status, students }) => {
+                return (
+                  <ClassCard
+                    key={key}
+                    classId={key}
+                    name={name}
+                    status={status}
+                    students={students}
+                    customClickEvent={handleClassClick}
+                  />
+                )
+              })}
+            </Box>
+            <Box
+              margin="0rem 2rem 2rem 2rem"
+              sx={{
+                justifyContent: "space-between",
+                display: "flex",
+                height: "3.7vh",
+              }}
+            ></Box>
+          </Box>
+          <Modal
+            isOpen={isOpen}
+            onRequestClose={() => {
+              setIsOpen(false)
+              setClassName("")
+              setStudents(false)
+              setStudentsArray([])
+              setStudentsId([])
+            }}
+            style={customStyles}
+            contentLabel="Example Modal"
+          >
+            <h1 style={{ margin: "0px 0px 5px 0px", textAlign: "center" }}>
+              Create a new Class
+            </h1>
+            <form display="flex">
+              <div
+                style={{ display: "flex", flexDirection: "row", width: "100%" }}
+              >
+                <TextField
+                  variant="outlined"
+                  label={
+                    createClassErrors["name"]
+                      ? createClassErrors["name"]
+                      : "Enter class name"
+                  }
+                  value={className}
+                  onChange={(e) => {
+                    setClassName(e.target.value)
+                  }}
+                  onClick={() => setStudents(false)}
+                  style={{ margin: "15px", width: "100%" }}
+                />
+                <FormControl>
+                  <RadioGroup defaultValue="Active" name="radio-buttons-group">
+                    <FormControlLabel
+                      value="Active"
+                      control={<Radio />}
+                      label="Active"
+                      onClick={() => {
+                        setStudentsStatus("Active")
+                        console.log("Active status")
+                      }}
+                    />
+                    <FormControlLabel
+                      value="Inactive"
+                      control={<Radio />}
+                      label="Inactive"
+                      onClick={() => {
+                        setStudentsStatus("Inactive")
+                        console.log("Inactive status")
+                      }}
+                    />
+                  </RadioGroup>
+                </FormControl>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <TextField
+                  variant="outlined"
+                  label={
+                    createClassErrors["students"]
+                      ? createClassErrors["students"]
+                      : "Select students for your class."
+                  }
+                  value={studentsArray}
+                  onClick={() => {
+                    setStudents(true)
+                  }}
+                  style={{
+                    margin: "15px 15px 0px 15px",
+                    width: "96%",
+                  }}
+                />
+                {!students ? (
+                  <></>
+                ) : (
+                  <Box sx={{ width: "96%", margin: "5px 15px 15px 15px" }}>
+                    <List
+                      sx={{
+                        width: "100%",
+                        position: "relative",
+                        overflow: "auto",
+                        maxHeight: 245,
+                        "& ul": { padding: 0 },
+                      }}
+                      subheader={<li />}
+                    >
+                      {allStudents.map(({ id, firstName, lastName }) => {
+                        return (
+                          <ListItemButton
+                            key={id}
+                            id={id}
+                            onClick={(event) => {
+                              setStudentsArray([
+                                ...studentsArray,
+                                ` ${event.target.innerText}`,
+                              ])
+                              setStudentsId([
+                                ...studentsId,
+                                event.currentTarget.id,
+                              ])
+                            }}
+                            divider={true}
+                          >
+                            <ListItemText
+                              primary={`${firstName} ${lastName}`}
+                            />
+                          </ListItemButton>
+                        )
+                      })}
+                    </List>
+                  </Box>
+                )}
+              </div>
+            </form>
+            <div style={{ display: "flex", flexDirection: "row" }}>
+              <Button
+                variant="outlined"
+                onClick={handleSubmit}
+                style={{ marginTop: "20px", width: "100%" }}
+              >
+                Create Class
+              </Button>
+            </div>
+          </Modal>
+          <Modal
+            isOpen={selectedClassModal}
+            onRequestClose={() => {
+              setButtonsOpen(true)
+              setSelectedClassModal(false)
+              setSearchParams({})
+            }}
+            style={classStyles}
+            contentLabel="Example Modal"
+          >
+            <Box m="1.5rem 2.5rem 0rem 2.5rem">
+              <Box>
+                <Typography
+                  variant="h3"
+                  // color={theme.palette.secondary[100]}
+                  fontWeight="bold"
+                  sx={{ mb: "5px", color: "#F6F6F6" }}
+                >
+                  {selectedClassData.name}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  sx={{ color: "#F6F6F6" }}
+                  // color={theme.palette.secondary[300]}
+                >
+                  Students
+                </Typography>
+              </Box>
+              <Box
+                height="67vh"
+                sx={{
+                  "& .MuiDataGrid-root": {
+                    border: "none",
+                    fontFamily: "Poppins",
+                  },
+                  "& .MuiDataGrid-cell": {
+                    borderBottom: "none",
+                  },
+                  "& .MuiDataGrid-columnHeaders": {
+                    backgroundColor: "#171923",
+                    color: "#f6f6f6",
+                    borderBottom: "none",
+                  },
+                  "& .MuiDataGrid-virtualScroller": {
+                    backgroundColor: "#171923",
+                  },
+                  "& .MuiDataGrid-Containeer": {
+                    backgroundColor: "#f6f6f6",
+                    color: "#f6f6f6",
+                    borderTop: "none",
+                  },
+                  "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                    color: `#f6f6f6`,
+                  },
+                  ".MuiButtonBase-root": {
+                    color: "#f6f6f6",
+                  },
+                  ".MuiToolbar-root": {
+                    color: "#f6f6f6",
+                  },
+                  ".MuiSvgIcon-root": {
+                    color: "#f6f6f6",
+                  },
+                  ".MuiDataGrid-columnHeaderTitleContainer": {
+                    borderColor: "#f6f6f6 !important",
+                  },
+                  ".MuiDataGrid-row": {
+                    color: "#f6f6f6 !important",
+                    fontSize: "0.9rem",
+                  },
+                  ".MuiDataGrid-selectedRowCount": {
+                    color: "#171923 !important",
+                    cursor: "default",
+                  },
+                  ".MuiTablePagination-actions": {
+                    display: "none",
+                  },
+                }}
+              >
+                <DataGrid
+                  // loading={isLoading || !data}
+                  getRowId={(row) => row.id}
+                  rows={allStudents || []}
+                  columns={columns}
+                  rowCount={rowCount || 0}
+                  rowsPerPage={-1}
+                  rowsPerPageOptions={[]}
+                  paginationMode="server"
+                  sortingMode="server"
+                  // onPageChange={(newPage) => setPage(newPage)}
+                  // onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                  // onSortModelChange={(newSortModel) => setSort(...newSortModel)}
+                  components={{ Toolbar: DataGridCustomToolbar }}
+                  componentsProps={{
+                    toolbar: { searchInput, setSearchInput, setSearch },
+                  }}
+                  // className={"datagrid"}
+                />
+              </Box>
+            </Box>
+          </Modal>
+        </Box>
+      )
+  }
 }
 
 export default Classes

@@ -15,11 +15,84 @@ import {
   LoginLink,
 } from "../signup-elements.js"
 
+import { Box, FormControl, Select, MenuItem, InputLabel } from "@mui/material"
+import styled from "styled-components"
+
+const RoleBox = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 3rem;
+  .MuiFormLabel-root,
+  .MuiInputLabel-root,
+  .MuiInputLabel-formControl,
+  .MuiInputLabel-animated,
+  .MuiInputLabel-standard,
+  .MuiFormLabel-colorPrimary,
+  .MuiInputLabel-root,
+  .MuiInputLabel-formControl,
+  .MuiInputLabel-animated,
+  .MuiInputLabel-standard,
+  .css-aqpgxn-MuiFormLabel-root-MuiInputLabel-root {
+    color: #f6f6f6;
+  }
+
+  .MuiSvgIcon-root,
+  .MuiSvgIcon-fontSizeMedium,
+  .MuiSelect-icon,
+  .MuiSelect-iconStandard,
+  .css-pqjvzy-MuiSvgIcon-root-MuiSelect-icon {
+    color: #f6f6f6 !important;
+  }
+
+  .MuiSelect-nativeInput,
+  .css-yf8vq0-MuiSelect-nativeInput {
+    color: #f6f6f6 !important;
+    /* border-bottom: 1px solid white !important; */
+  }
+
+  .MuiSelect-select,
+  .MuiSelect-standard,
+  .MuiInputBase-input,
+  .MuiInput-input,
+  .css-1rxz5jq-MuiSelect-select-MuiInputBase-input-MuiInput-input::before {
+    color: #f6f6f6;
+    border-bottom: 2px solid #f6f6f6 !important;
+  }
+
+  .MuiSelect-select,
+  .MuiSelect-standard,
+  .MuiInputBase-input,
+  .MuiInput-input,
+  .css-1rxz5jq-MuiSelect-select-MuiInputBase-input-MuiInput-input::after {
+    color: #f6f6f6;
+    border-bottom: 2px solid white !important;
+  }
+
+  .MuiFormLabel-root,
+  .MuiInputLabel-root,
+  .MuiInputLabel-formControl,
+  .MuiInputLabel-animated,
+  .MuiInputLabel-shrink,
+  .MuiInputLabel-standard,
+  .MuiFormLabel-colorPrimary,
+  .Mui-focused,
+  .MuiInputLabel-root,
+  .MuiInputLabel-formControl,
+  .MuiInputLabel-animated,
+  .MuiInputLabel-shrink,
+  .MuiInputLabel-standard,
+  .css-1c2i806-MuiFormLabel-root-MuiInputLabel-root {
+    color: white !important;
+  }
+`
+
 const SignupPage = () => {
   const [firstname, setFirstname] = useState("")
   const [lastname, setLastname] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [role, setRole] = useState("")
 
   const [errors, setErrors] = useState({})
 
@@ -30,7 +103,7 @@ const SignupPage = () => {
     await axios({
       method: `post`,
       url: `http://localhost:5000/signup`,
-      data: { firstname, lastname, email, password },
+      data: { firstname, lastname, email, password, role },
       withCredentials: true,
     })
       .then((res) => {
@@ -120,7 +193,35 @@ const SignupPage = () => {
                 <ForgotPasswordLink>Forgot Password?</ForgotPasswordLink>
                 <LoginLink to="/login">Log In</LoginLink>
               </LinksDiv>
-              <button type="submit">Sign Up</button>
+              <RoleBox>
+                <Box sx={{ width: "40%", marginTop: "8px" }}>
+                  <FormControl
+                    variant="standard"
+                    sx={{
+                      m: 1,
+                      minWidth: 120,
+                    }}
+                  >
+                    <InputLabel id="demo-simple-select-standard-label">
+                      Role
+                    </InputLabel>
+                    <Select
+                      labelId="demo-simple-select-standard-label"
+                      id="demo-simple-select-standard"
+                      value={role}
+                      onChange={(event) => setRole(event.target.value)}
+                      label="Age"
+                    >
+                      <MenuItem value={"Teacher"}>Teacher</MenuItem>
+                      <MenuItem value={"Student"}>Student</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                <Box sx={{ width: "60%" }}>
+                  <button type="submit">Sign Up</button>
+                </Box>
+              </RoleBox>
+              <span className={`error-span`}>{errors["role"]}</span>
             </FormDiv>
           </BoxDiv>
         </div>

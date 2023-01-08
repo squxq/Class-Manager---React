@@ -36,7 +36,7 @@ const Sidebar = ({ drawerWidth, userId }) => {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    setActive("calendar")
+    setActive(pathname.split("/")[1])
   }, [pathname])
 
   const [anchorEl, setAnchorEl] = React.useState(null)
