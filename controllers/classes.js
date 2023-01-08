@@ -2,6 +2,7 @@ const { StatusCodes } = require("http-status-codes")
 const User = require("../models/User")
 const Class = require("../models/Class")
 const classesErrors = require("../errors/classes-errors")
+const mongoose = require("mongoose")
 
 const classRewrite = (docs) => {
   const classesArray = [...docs]
@@ -56,6 +57,7 @@ const getAllClasses = async (req, res) => {
 
 const createClass = async (req, res) => {
   try {
+    const { className: name, studentsStatus: status, studentsId } = req.body
     User.findById(req.params.id, async (err, user) => {
       try {
         if (err) {
@@ -64,37 +66,49 @@ const createClass = async (req, res) => {
             err: `User not found.`,
           })
         }
-        const { className: name, studentsStatus: status, studentsId } = req.body
 
-        const students = studentsId.map(async (studentId) => {
-          return await User.findById(studentId)
-        })
+        User.find(
+          {
+            _id: {
+              $in: studentsId.map((student) => {
+                return mongoose.Types.ObjectId(student)
+              }),
+            },
+          },
+          async (err, users) => {
+            if (err) {
+              return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                err: `Something went wrong, please try again later.`,
+              })
+            }
+            const newClass = await Class.create({
+              name,
+              status,
+              teacher: user._id,
+              students: users,
+            })
 
-        const newClass = await Class.create({
-          name,
-          status,
-          teacher: user._id,
-          students,
-        })
+            if (!newClass) {
+              return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                err: `Something went wrong please try again later.`,
+              })
+            }
 
-        if (!newClass) {
-          return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            success: false,
-            err: `Something went wrong please try again later.`,
-          })
-        }
+            const docs = await Class.find({ teacher: user._id })
 
-        const docs = await Class.find({ teacher: user._id })
+            const classes = classRewrite(docs)
 
-        const classes = classRewrite(docs)
+            const total = await Class.count({ teacher: user._id })
 
-        const total = await Class.count({ teacher: user._id })
-
-        res.status(StatusCodes.OK).json({
-          success: true,
-          classes,
-          total,
-        })
+            res.status(StatusCodes.CREATED).json({
+              success: true,
+              classes,
+              total,
+            })
+          }
+        )
       } catch (err) {
         const errors = classesErrors(err)
         res.status(StatusCodes.BAD_REQUEST).json({
@@ -127,12 +141,24 @@ const getSelectedClass = async (req, res) => {
         })
       }
 
+      const students = selectedClass.students.map((student) => {
+        return {
+          id: student._id,
+          firstName: student.firstname,
+          lastName: student.lastname,
+          email: student.email,
+        }
+      })
+
       res.status(StatusCodes.OK).json({
         success: true,
         class: {
           name: selectedClass.name,
           status: selectedClass.status,
-          students: selectedClass.students,
+          students: students,
+        },
+        total: {
+          students: students.length,
         },
       })
     })
@@ -144,37 +170,216 @@ const getSelectedClass = async (req, res) => {
   }
 }
 
+const getClassStudents = async (req, res) => {
+  try {
+    const { id, searchInput = "" } = req.query
+
+    Class.findById(id, async (err, focusClass) => {
+      if (err) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: `Class not found.`,
+        })
+      }
+
+      if (searchInput.indexOf(" ") >= 0) {
+        const searchInputArray = searchInput.split(" ")
+        let docs = await User.find({
+          role: "Student",
+          $and: [
+            { firstname: { $regex: searchInputArray[0], $options: "i" } },
+            { lastname: { $regex: searchInputArray[1], $options: "i" } },
+          ],
+        })
+        if (docs.length === 0) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: `No students found.`,
+          })
+        }
+
+        let newStudentsArray = []
+
+        for (let doc of docs) {
+          const docId = JSON.stringify(doc._id).match(/"(.*?)"/)[1]
+
+          const match = focusClass.students.find(
+            (student) =>
+              JSON.stringify(student._id).match(/"(.*?)"/)[1] === docId
+          )
+          if (match) {
+            newStudentsArray.push(match)
+          }
+        }
+
+        const studentsArray = [...newStudentsArray]
+        const students = studentsArray.map((student) => {
+          return {
+            id: student._id,
+            firstName: student.firstname,
+            lastName: student.lastname,
+            email: student.email,
+          }
+        })
+
+        return res.status(StatusCodes.OK).json({
+          success: true,
+          students,
+          total: students.length,
+        })
+      } else {
+        const docs = await User.find({
+          role: "Student",
+          $or: [
+            { firstname: { $regex: searchInput, $options: "i" } },
+            { lastname: { $regex: searchInput, $options: "i" } },
+            { email: { $regex: searchInput, $options: "i" } },
+          ],
+        })
+
+        if (docs.length === 0) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: `No students found.`,
+          })
+        }
+
+        let newStudentsArray = []
+
+        for (let doc of docs) {
+          const docId = JSON.stringify(doc._id).match(/"(.*?)"/)[1]
+
+          const match = focusClass.students.find(
+            (student) =>
+              JSON.stringify(student._id).match(/"(.*?)"/)[1] === docId
+          )
+          if (match) {
+            newStudentsArray.push(match)
+          }
+        }
+
+        const studentsArray = [...newStudentsArray]
+        const students = studentsArray.map((student) => {
+          return {
+            id: student._id,
+            firstName: student.firstname,
+            lastName: student.lastname,
+            email: student.email,
+          }
+        })
+
+        return res.status(StatusCodes.OK).json({
+          success: true,
+          students,
+          total: students.length,
+        })
+      }
+    })
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
 const getAllStudents = async (req, res) => {
   try {
     User.find({ role: "Student" }, (err, docs) => {
       if (err) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-          success: false,
-          err: `Something went wrong please try again later.`,
-        })
-      }
-      if (docs.length === 0) {
         return res.status(StatusCodes.NOT_FOUND).json({
           success: false,
           err: `No students found.`,
         })
       }
-      const studentsArray = [...docs]
-      const students = studentsArray.map((student) => {
+      const students = docs.map((student) => {
         return {
           id: student._id,
           firstName: student.firstname,
           lastName: student.lastname,
-          email: student.email,
         }
       })
 
       res.status(StatusCodes.OK).json({
         success: true,
         students,
-        total: students.length,
       })
     })
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
+const deleteStudent = async (req, res) => {
+  try {
+    const { studentId } = req.query
+    const { id: classId } = req.params
+
+    Class.update(
+      { _id: classId },
+      { $pull: { students: { _id: studentId } } },
+      { safe: true, multi: true },
+      function (err, obj) {
+        if (err) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: err.message,
+          })
+        }
+
+        res.status(StatusCodes.OK).json({
+          success: true,
+          obj,
+        })
+      }
+    )
+
+    // console.log(studentId, classId)
+    // Class.findById(classId, (err, selectedClass) => {
+    //   if (err) {
+    //     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+    //       success: false,
+    //       err: err.message,
+    //     })
+    //   }
+    //   if (!selectedClass) {
+    //     return res.status(StatusCodes.NOT_FOUND).json({
+    //       success: false,
+    //       err: "Class not found.",
+    //     })
+    //   }
+    //   console.log(selectedClass)
+    //   const deletedStudent = selectedClass.students.indexOf(
+    //     selectedClass.students.find((student) => {
+    //       console.log(student, mongoose.Types.ObjectId(studentId))
+    //       return student._id === mongoose.Types.ObjectId(studentId)
+    //     })
+    //   )
+
+    //   console.log(deletedStudent)
+    //   const newStudentsArray = selectedClass.students.splice(deletedStudent, 1)
+
+    //   Class.findOneAndUpdate(
+    //     { _id: classId },
+    //     { students: newStudentsArray },
+    //     { new: true },
+    //     (err, newClass) => {
+    //       if (err) {
+    //         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+    //           success: false,
+    //           err: err.message,
+    //         })
+    //       }
+    //       res.status(StatusCodes.OK).json({
+    //         success: true,
+    //         students: newClass.students,
+    //       })
+    //     }
+    //   )
+    // })
   } catch (err) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
@@ -188,4 +393,6 @@ module.exports = {
   createClass,
   getSelectedClass,
   getAllStudents,
+  getClassStudents,
+  deleteStudent,
 }

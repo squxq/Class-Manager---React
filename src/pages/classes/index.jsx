@@ -25,24 +25,6 @@ import { IconButton, InputAdornment } from "@mui/material"
 import { GridToolbarContainer, GridToolbarExport } from "@mui/x-data-grid"
 import { styled } from "@mui/system"
 
-const columns = [
-  {
-    field: "firstName",
-    headerName: "First Name",
-    flex: 1,
-  },
-  {
-    field: "lastName",
-    headerName: "Last Name",
-    flex: 1,
-  },
-  {
-    field: "email",
-    headerName: "Email",
-    flex: 1,
-  },
-]
-
 const customStyles = {
   content: {
     top: "50%",
@@ -180,7 +162,15 @@ const CssTextField = styled(TextField)({
   },
 })
 
-const DataGridCustomToolbar = ({ searchInput, setSearchInput, setSearch }) => {
+const DataGridCustomToolbar = ({
+  searchInput,
+  setSearchInput,
+  setAllStudents,
+  setSearchParams,
+  searchParams,
+  handleStudentClick,
+  handleClassClick,
+}) => {
   return (
     <GridToolbarContainer>
       <FlexBetween width="100%">
@@ -190,6 +180,7 @@ const DataGridCustomToolbar = ({ searchInput, setSearchInput, setSearch }) => {
             <Button
               variant="text"
               sx={{ color: "#3AAFA9", fontSize: "1.25rem", marginLeft: "2rem" }}
+              onClick={handleStudentClick}
             >
               + Add New
             </Button>
@@ -212,9 +203,23 @@ const DataGridCustomToolbar = ({ searchInput, setSearchInput, setSearch }) => {
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() => {
-                      setSearch(searchInput)
-                      setSearchInput("")
+                    onClick={async () => {
+                      const id = searchParams.get("id")
+                      setSearchParams({ id, searchInput })
+                      await axios({
+                        method: "get",
+                        url: `http://localhost:5000/students/${id}`,
+                        params: {
+                          id,
+                          searchInput,
+                        },
+                      })
+                        .then((res) => {
+                          console.log(res)
+                          setAllStudents(res.data.students)
+                          setSearchInput("")
+                        })
+                        .catch((err) => console.log(err))
                     }}
                     sx={{ color: "#f6f6f6" }}
                   >
@@ -293,7 +298,6 @@ const Classes = () => {
 
   const [selectedClassModal, setSelectedClassModal] = useState(false)
   const [buttonsOpen, setButtonsOpen] = useState(true)
-  const [search, setSearch] = useState("")
 
   const [searchInput, setSearchInput] = useState("")
 
@@ -302,27 +306,23 @@ const Classes = () => {
 
   const [searchParams, setSearchParams] = useSearchParams()
 
+  const [classId, setClassId] = useState("")
+
   const handleClassClick = async (id) => {
     await axios({
       method: "get",
       url: `http://localhost:5000/class/${id}`,
     })
-      .then(async (res) => {
-        await axios({
-          method: "get",
-          url: `http://localhost:5000/students`,
-        })
-          .then((res) => {
-            console.log(res)
-            setAllStudents(res.data.students)
-            setRowCount(res.data.total)
-          })
-          .catch((err) => console.log(err))
+      .then((res) => {
         setButtonsOpen(false)
         setSelectedClassModal(true)
         setSelectedClassData(res.data.class)
+        setAllStudents(res.data.class.students)
+        setRowCount(res.data.total)
         setSearchParams({ id })
+        setClassId(id)
       })
+
       .catch((err) => console.log(err))
   }
 
@@ -339,6 +339,21 @@ const Classes = () => {
       })
       .catch((err) => console.log(err))
   }
+
+  const handleRemoveStudent = async (e, params) => {
+    console.log(params.row.id)
+    await axios({
+      method: "patch",
+      url: `http://localhost:5000/students/${classId}`,
+      params: {
+        studentId: params.row.id,
+      },
+    })
+      .then((res) => console.log(res))
+      .catch((err) => console.log(err))
+  }
+
+  const [selectedStudent, setSelectedStudent] = useState(false)
 
   switch (classData) {
     case false:
@@ -557,9 +572,9 @@ const Classes = () => {
               setButtonsOpen(true)
               setSelectedClassModal(false)
               setSearchParams({})
+              setClassId("")
             }}
             style={classStyles}
-            contentLabel="Example Modal"
           >
             <Box m="1.5rem 2.5rem 0rem 2.5rem">
               <Box>
@@ -631,26 +646,78 @@ const Classes = () => {
                 }}
               >
                 <DataGrid
-                  // loading={isLoading || !data}
                   getRowId={(row) => row.id}
                   rows={allStudents || []}
-                  columns={columns}
+                  columns={[
+                    {
+                      field: "firstName",
+                      headerName: "First Name",
+                      flex: 1,
+                    },
+                    {
+                      field: "lastName",
+                      headerName: "Last Name",
+                      flex: 1,
+                    },
+                    {
+                      field: "email",
+                      headerName: "Email",
+                      flex: 1,
+                    },
+                    {
+                      field: "remove",
+                      headerName: "Remove",
+                      flex: 0.5,
+                      renderCell: (params) => {
+                        return (
+                          <Button
+                            onClick={(e) => handleRemoveStudent(e, params)}
+                            variant="contained"
+                          >
+                            Remove
+                          </Button>
+                        )
+                      },
+                      sortable: false,
+                    },
+                  ]}
                   rowCount={rowCount || 0}
                   rowsPerPage={-1}
                   rowsPerPageOptions={[]}
-                  paginationMode="server"
-                  sortingMode="server"
-                  // onPageChange={(newPage) => setPage(newPage)}
-                  // onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-                  // onSortModelChange={(newSortModel) => setSort(...newSortModel)}
+                  sortingOrder={["desc", "asc"]}
+                  initialState={{
+                    sorting: {
+                      sortModel: [{ field: "lastName", sort: "asc" }],
+                    },
+                  }}
                   components={{ Toolbar: DataGridCustomToolbar }}
                   componentsProps={{
-                    toolbar: { searchInput, setSearchInput, setSearch },
+                    toolbar: {
+                      searchInput,
+                      setSearchInput,
+                      setAllStudents,
+                      setSearchParams,
+                      searchParams,
+                      handleClassClick,
+                    },
                   }}
-                  // className={"datagrid"}
                 />
               </Box>
             </Box>
+          </Modal>
+          <Modal
+            isOpen={selectedStudent}
+            onRequestClose={() => {
+              setSelectedStudent(false)
+            }}
+            style={customStyles}
+          >
+            <Typography variant="h4" sx={{ m: "5px 0px" }}>
+              User's Name
+            </Typography>
+            <Typography variant="h6" sx={{ m: "0px 5px" }}>
+              User's Email
+            </Typography>
           </Modal>
         </Box>
       )
