@@ -157,9 +157,7 @@ const getSelectedClass = async (req, res) => {
           status: selectedClass.status,
           students: students,
         },
-        total: {
-          students: students.length,
-        },
+        total: students.length,
       })
     })
   } catch (err) {
@@ -315,71 +313,50 @@ const getAllStudents = async (req, res) => {
 
 const deleteStudent = async (req, res) => {
   try {
-    const { studentId } = req.query
+    const { studentId } = req.body
     const { id: classId } = req.params
 
-    Class.update(
-      { _id: classId },
-      { $pull: { students: { _id: studentId } } },
-      { safe: true, multi: true },
-      function (err, obj) {
-        if (err) {
-          return res.status(StatusCodes.NOT_FOUND).json({
-            success: false,
-            err: err.message,
-          })
-        }
-
-        res.status(StatusCodes.OK).json({
-          success: true,
-          obj,
+    Class.findById(classId, (err, selectedClass) => {
+      if (err) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          err: err.message,
         })
       }
-    )
+      if (!selectedClass) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: "Class not found.",
+        })
+      }
 
-    // console.log(studentId, classId)
-    // Class.findById(classId, (err, selectedClass) => {
-    //   if (err) {
-    //     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-    //       success: false,
-    //       err: err.message,
-    //     })
-    //   }
-    //   if (!selectedClass) {
-    //     return res.status(StatusCodes.NOT_FOUND).json({
-    //       success: false,
-    //       err: "Class not found.",
-    //     })
-    //   }
-    //   console.log(selectedClass)
-    //   const deletedStudent = selectedClass.students.indexOf(
-    //     selectedClass.students.find((student) => {
-    //       console.log(student, mongoose.Types.ObjectId(studentId))
-    //       return student._id === mongoose.Types.ObjectId(studentId)
-    //     })
-    //   )
+      const userToDelete = selectedClass.students.find(
+        (student) =>
+          JSON.stringify(student._id).match(/"(.*?)"/)[1] === studentId
+      )
+      selectedClass.students.splice(
+        selectedClass.students.indexOf(userToDelete),
+        1
+      )
 
-    //   console.log(deletedStudent)
-    //   const newStudentsArray = selectedClass.students.splice(deletedStudent, 1)
-
-    //   Class.findOneAndUpdate(
-    //     { _id: classId },
-    //     { students: newStudentsArray },
-    //     { new: true },
-    //     (err, newClass) => {
-    //       if (err) {
-    //         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-    //           success: false,
-    //           err: err.message,
-    //         })
-    //       }
-    //       res.status(StatusCodes.OK).json({
-    //         success: true,
-    //         students: newClass.students,
-    //       })
-    //     }
-    //   )
-    // })
+      Class.findOneAndUpdate(
+        { _id: classId },
+        { students: selectedClass.students },
+        { new: true },
+        (err, newClass) => {
+          if (err) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              err: err.message,
+            })
+          }
+          res.status(StatusCodes.OK).json({
+            success: true,
+            students: newClass.students,
+          })
+        }
+      )
+    })
   } catch (err) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,

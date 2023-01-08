@@ -169,7 +169,6 @@ const DataGridCustomToolbar = ({
   setSearchParams,
   searchParams,
   handleStudentClick,
-  handleClassClick,
 }) => {
   return (
     <GridToolbarContainer>
@@ -182,7 +181,7 @@ const DataGridCustomToolbar = ({
               sx={{ color: "#3AAFA9", fontSize: "1.25rem", marginLeft: "2rem" }}
               onClick={handleStudentClick}
             >
-              + Add New
+              + Update
             </Button>
           </Box>
         </FlexBetween>
@@ -341,16 +340,19 @@ const Classes = () => {
   }
 
   const handleRemoveStudent = async (e, params) => {
-    console.log(params.row.id)
     await axios({
       method: "patch",
       url: `http://localhost:5000/students/${classId}`,
-      params: {
+      data: {
         studentId: params.row.id,
       },
     })
       .then((res) => console.log(res))
       .catch((err) => console.log(err))
+  }
+
+  const handleStudentClick = async () => {
+    setSelectedStudent(true)
   }
 
   const [selectedStudent, setSelectedStudent] = useState(false)
@@ -698,7 +700,7 @@ const Classes = () => {
                       setAllStudents,
                       setSearchParams,
                       searchParams,
-                      handleClassClick,
+                      handleStudentClick,
                     },
                   }}
                 />
@@ -712,12 +714,118 @@ const Classes = () => {
             }}
             style={customStyles}
           >
-            <Typography variant="h4" sx={{ m: "5px 0px" }}>
-              User's Name
-            </Typography>
-            <Typography variant="h6" sx={{ m: "0px 5px" }}>
-              User's Email
-            </Typography>
+            <h1 style={{ margin: "0px 0px 5px 0px", textAlign: "center" }}>
+              Create a new Class
+            </h1>
+            <form display="flex">
+              <div
+                style={{ display: "flex", flexDirection: "row", width: "100%" }}
+              >
+                <TextField
+                  variant="outlined"
+                  label={
+                    createClassErrors["name"]
+                      ? createClassErrors["name"]
+                      : "Enter class name"
+                  }
+                  value={className}
+                  onChange={(e) => {
+                    setClassName(e.target.value)
+                  }}
+                  onClick={() => setStudents(false)}
+                  style={{ margin: "15px", width: "100%" }}
+                />
+                <FormControl>
+                  <RadioGroup defaultValue="Active" name="radio-buttons-group">
+                    <FormControlLabel
+                      value="Active"
+                      control={<Radio />}
+                      label="Active"
+                      onClick={() => {
+                        setStudentsStatus("Active")
+                        console.log("Active status")
+                      }}
+                    />
+                    <FormControlLabel
+                      value="Inactive"
+                      control={<Radio />}
+                      label="Inactive"
+                      onClick={() => {
+                        setStudentsStatus("Inactive")
+                        console.log("Inactive status")
+                      }}
+                    />
+                  </RadioGroup>
+                </FormControl>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <TextField
+                  variant="outlined"
+                  label={
+                    createClassErrors["students"]
+                      ? createClassErrors["students"]
+                      : "Select students for your class."
+                  }
+                  value={studentsArray}
+                  onClick={() => {
+                    setStudents(true)
+                  }}
+                  style={{
+                    margin: "15px 15px 0px 15px",
+                    width: "96%",
+                  }}
+                />
+                {!students ? (
+                  <></>
+                ) : (
+                  <Box sx={{ width: "96%", margin: "5px 15px 15px 15px" }}>
+                    <List
+                      sx={{
+                        width: "100%",
+                        position: "relative",
+                        overflow: "auto",
+                        maxHeight: 245,
+                        "& ul": { padding: 0 },
+                      }}
+                      subheader={<li />}
+                    >
+                      {allStudents.map(({ id, firstName, lastName }) => {
+                        return (
+                          <ListItemButton
+                            key={id}
+                            id={id}
+                            onClick={(event) => {
+                              setStudentsArray([
+                                ...studentsArray,
+                                ` ${event.target.innerText}`,
+                              ])
+                              setStudentsId([
+                                ...studentsId,
+                                event.currentTarget.id,
+                              ])
+                            }}
+                            divider={true}
+                          >
+                            <ListItemText
+                              primary={`${firstName} ${lastName}`}
+                            />
+                          </ListItemButton>
+                        )
+                      })}
+                    </List>
+                  </Box>
+                )}
+              </div>
+            </form>
+            <div style={{ display: "flex", flexDirection: "row" }}>
+              <Button
+                variant="outlined"
+                onClick={handleSubmit}
+                style={{ marginTop: "20px", width: "100%" }}
+              >
+                Update Class
+              </Button>
+            </div>
           </Modal>
         </Box>
       )
