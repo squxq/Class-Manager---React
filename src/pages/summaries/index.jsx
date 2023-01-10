@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { styled } from "@mui/system"
 import {
   Box,
@@ -7,6 +7,7 @@ import {
   IconButton,
   InputAdornment,
   TextField,
+  Collapse,
 } from "@mui/material"
 import { KeyboardArrowUp, KeyboardArrowDown, Search } from "@mui/icons-material"
 import TableCell, { tableCellClasses } from "@mui/material/TableCell"
@@ -15,6 +16,8 @@ import {
   GridToolbarContainer,
   GridToolbarExport,
 } from "@mui/x-data-grid"
+import axios from "axios"
+import { useParams } from "react-router-dom"
 
 const FlexBetween = styled(Box)({
   display: "flex",
@@ -58,17 +61,6 @@ const DataGridCustomToolbar = () => {
         <FlexBetween>
           <Box>
             <GridToolbarExport sx={{ color: "#3AAFA9", fontSize: "1.25rem" }} />
-            <Button
-              variant="text"
-              sx={{
-                color: "#3AAFA9",
-                fontSize: "1.25rem",
-                marginLeft: "2rem",
-              }}
-              //   onClick={handleStudentClick}
-            >
-              + Update
-            </Button>
           </Box>
         </FlexBetween>
         <Box>
@@ -121,169 +113,185 @@ const DataGridCustomToolbar = () => {
 }
 
 const Summaries = () => {
-  const [open, setOpen] = useState(false)
+  const [summariesData, setSummariesData] = useState(false)
+  const [summaries, setSummaries] = useState([])
 
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(5)
+  const { id: userId } = useParams()
 
-  // Avoid a layout jump when reaching the last page with empty rows.
-  // const emptyRows =
-  //   page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0
+  useEffect(() => {
+    const fetchData = async () => {
+      await axios({
+        method: "get",
+        url: `http://localhost:5000/summaries/${userId}`,
+      })
+        .then((res) => {
+          console.log(res)
+          setSummariesData(res.data.success)
+        })
+        .catch((err) => console.log(err))
+    }
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage)
+    fetchData()
+  }, [])
+
+  switch (summariesData) {
+    case false:
+      return <div>Something went wrong, please try again later.</div>
+    case true:
+      return (
+        <Box sx={{ m: "1.5rem 2.5rem" }}>
+          <Box
+            margin="2rem 2rem 2rem 2rem"
+            sx={{
+              justifyContent: "space-between",
+              display: "flex",
+            }}
+          >
+            <Typography variant="h4" color="#f6f6f6">
+              Summaries
+            </Typography>
+            <Button
+              variant="contained"
+              sx={{
+                margin: "0rem 1rem",
+                backgroundColor: "#3AAFA9",
+                color: "#f6f6f6",
+                "&:hover": {
+                  backgroundColor: "rgb(58, 175, 169, 0.7)",
+                },
+              }}
+              onClick={() => {
+                console.log("clicked")
+              }}
+            >
+              Create
+            </Button>
+          </Box>
+          <Box
+            margin="2rem 2rem 2rem 4.5rem"
+            height="78.6vh"
+            sx={{
+              width: "90%",
+              display: "flex",
+              justifyContent: "center",
+              "& .MuiDataGrid-root": {
+                border: "none",
+                fontFamily: "Poppins",
+              },
+              "& .MuiDataGrid-cell": {
+                borderBottom: "none",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#171923",
+                color: "#f6f6f6",
+                borderBottom: "none",
+              },
+              "& .MuiDataGrid-virtualScroller": {
+                backgroundColor: "#171923",
+              },
+              "& .MuiDataGrid-Containeer": {
+                backgroundColor: "#f6f6f6",
+                color: "#f6f6f6",
+                borderTop: "none",
+              },
+              "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                color: `#f6f6f6`,
+              },
+              ".MuiButtonBase-root": {
+                color: "#f6f6f6",
+              },
+              ".MuiToolbar-root": {
+                color: "#f6f6f6",
+              },
+              ".MuiSvgIcon-root": {
+                color: "#f6f6f6",
+              },
+              ".MuiDataGrid-columnHeaderTitleContainer": {
+                borderColor: "#f6f6f6 !important",
+              },
+              ".MuiDataGrid-row": {
+                color: "#f6f6f6 !important",
+                fontSize: "0.9rem",
+              },
+              ".MuiDataGrid-selectedRowCount": {
+                color: "#171923 !important",
+                cursor: "default",
+              },
+            }}
+          >
+            <DataGrid
+              getRowId={(row) => row.id}
+              rows={[
+                {
+                  id: "jklashdfaskj",
+                  display: "",
+                  created: "yesterday",
+                  state: "done",
+                  number: "34",
+                  content: "correcao do tpc etc",
+                  updated: "today",
+                },
+                {
+                  id: "sdfjkhgskdjfg",
+                  display: "",
+                  created: "today",
+                  state: "done",
+                  number: "38",
+                  content: "correcao do tpc etc",
+                  updated: "today",
+                },
+              ]}
+              columns={[
+                {
+                  field: "created",
+                  headerName: "Created",
+                  flex: 0.5,
+                },
+                {
+                  field: "state",
+                  headerName: "State",
+                  flex: 0.5,
+                },
+                {
+                  field: "number",
+                  headerName: "Number",
+                  flex: 0.5,
+                },
+                {
+                  field: "content",
+                  headerName: "Content",
+                  flex: 1,
+                },
+                {
+                  field: "updated",
+                  headerName: "Updated",
+                  flex: 0.5,
+                },
+              ]}
+              pageSize={10}
+              rowsPerPageOptions={[]}
+              sortingOrder={["desc", "asc"]}
+              initialState={{
+                sorting: {
+                  sortModel: [{ field: "updated", sort: "asc" }],
+                },
+              }}
+              components={{ Toolbar: DataGridCustomToolbar }}
+              componentsProps={{
+                toolbar: {
+                  // searchInput,
+                  // setSearchInput,
+                  // setAllStudents,
+                  // setSearchParams,
+                  // searchParams,
+                  // handleStudentClick,
+                },
+              }}
+            />
+          </Box>
+        </Box>
+      )
   }
-
-  return (
-    <Box sx={{ m: "1.5rem 2.5rem" }}>
-      <Box
-        margin="2rem 2rem 2rem 2rem"
-        sx={{
-          justifyContent: "space-between",
-          display: "flex",
-        }}
-      >
-        <Typography variant="h4" color="#f6f6f6">
-          Summaries
-        </Typography>
-        <Button
-          variant="contained"
-          sx={{
-            color: "#f6f6f6",
-            backgroundColor: "#3AAFA9 !important",
-          }}
-          onClick={() => {
-            console.log("clicked")
-          }}
-        >
-          Create
-        </Button>
-      </Box>
-      <Box
-        margin="2rem 2rem 2rem 4.5rem"
-        height="78.6vh"
-        sx={{
-          width: "90%",
-          display: "flex",
-          justifyContent: "center",
-          "& .MuiDataGrid-root": {
-            border: "none",
-            fontFamily: "Poppins",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: "#171923",
-            color: "#f6f6f6",
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: "#171923",
-          },
-          "& .MuiDataGrid-Containeer": {
-            backgroundColor: "#f6f6f6",
-            color: "#f6f6f6",
-            borderTop: "none",
-          },
-          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-            color: `#f6f6f6`,
-          },
-          ".MuiButtonBase-root": {
-            color: "#f6f6f6",
-          },
-          ".MuiToolbar-root": {
-            color: "#f6f6f6",
-          },
-          ".MuiSvgIcon-root": {
-            color: "#f6f6f6",
-          },
-          ".MuiDataGrid-columnHeaderTitleContainer": {
-            borderColor: "#f6f6f6 !important",
-          },
-          ".MuiDataGrid-row": {
-            color: "#f6f6f6 !important",
-            fontSize: "0.9rem",
-          },
-          ".MuiDataGrid-selectedRowCount": {
-            color: "#171923 !important",
-            cursor: "default",
-          },
-        }}
-      >
-        <DataGrid
-          getRowId={(row) => row.id}
-          rows={[
-            {
-              id: "jklashdfaskj",
-              created: "yesterday",
-              state: "done",
-              number: "34",
-              updated: "today",
-            },
-          ]}
-          columns={[
-            // {
-            //   field: "display",
-            //   headerName: "",
-            //   flex: 0.5,
-            //   renderCell: (params) => {
-            //     return (
-            //       <Button
-            //         //   onClick={(e) => handleRemoveStudent(e, params)}
-            //         variant="contained"
-            //       >
-            //         <KeyboardArrowDown />
-            //       </Button>
-            //     )
-            //   },
-            //   sortable: false,
-            // },
-            {
-              field: "created",
-              headerName: "Created",
-              flex: 1,
-            },
-            {
-              field: "state",
-              headerName: "State",
-              flex: 1,
-            },
-            {
-              field: "number",
-              headerName: "Number",
-              flex: 1,
-            },
-            {
-              field: "updated",
-              headerName: "Updated",
-              flex: 1,
-            },
-          ]}
-          rowCount={8}
-          rowsPerPage={8}
-          rowsPerPageOptions={[]}
-          sortingOrder={["desc", "asc"]}
-          //   initialState={{
-          //     sorting: {
-          //       sortModel: [{ field: "lastName", sort: "asc" }],
-          //     },
-          //   }}
-          components={{ Toolbar: DataGridCustomToolbar }}
-          componentsProps={{
-            toolbar: {
-              // searchInput,
-              // setSearchInput,
-              // setAllStudents,
-              // setSearchParams,
-              // searchParams,
-              // handleStudentClick,
-            },
-          }}
-        />
-      </Box>
-    </Box>
-  )
 }
 
 export default Summaries

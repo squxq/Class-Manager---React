@@ -9,6 +9,7 @@ import {
   CardActionArea,
   CardContent,
   Button,
+  IconButton,
   TextField,
   List,
   ListItemButton,
@@ -17,11 +18,11 @@ import {
   RadioGroup,
   FormControl,
   FormControlLabel,
+  InputAdornment,
 } from "@mui/material"
 import { FilterListOutlined, PeopleAlt, SingleBed } from "@mui/icons-material"
 import { DataGrid } from "@mui/x-data-grid"
-import { Search } from "@mui/icons-material"
-import { IconButton, InputAdornment } from "@mui/material"
+import { Search, Add } from "@mui/icons-material"
 import { GridToolbarContainer, GridToolbarExport } from "@mui/x-data-grid"
 import { styled } from "@mui/system"
 
@@ -355,6 +356,21 @@ const Classes = () => {
   }
 
   const handleStudentClick = async () => {
+    await axios({
+      method: "get",
+      url: `http://localhost:5000/class/${classId}`,
+    })
+      .then((res) => {
+        console.log(res.data.class.name)
+        setClassName(res.data.class.name)
+        setStudentsStatus(res.data.class.status)
+        setStudentsArray(
+          res.data.class.students.map(
+            (student) => ` ${student.firstName} ${student.lastName}`
+          )
+        )
+      })
+      .catch((err) => console.log(err))
     setSelectedStudent(true)
   }
 
@@ -385,23 +401,24 @@ const Classes = () => {
                   boxSizing: "border-box",
                 }}
               >
-                <Button
+                <IconButton
                   variant="contained"
                   sx={{
-                    margin: "0rem 1rem",
                     backgroundColor: "#3AAFA9",
                     color: "#f6f6f6",
                     "&:hover": {
                       backgroundColor: "rgb(58, 175, 169, 0.7)",
                     },
+                    height: "3rem",
+                    width: "3rem",
                   }}
                   onClick={() => {
                     setIsOpen(true)
                     getAllStudents()
                   }}
                 >
-                  Create
-                </Button>
+                  <Add />
+                </IconButton>
                 <Button
                   variant="contained"
                   sx={{
@@ -736,7 +753,7 @@ const Classes = () => {
             style={customStyles}
           >
             <h1 style={{ margin: "0px 0px 5px 0px", textAlign: "center" }}>
-              Create a new Class
+              {className}
             </h1>
             <form display="flex">
               <div

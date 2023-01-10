@@ -50,6 +50,10 @@ app.use(`/`, calendarRouter)
 const classesRouter = require(`./routes/classes`)
 app.use(`/`, classesRouter)
 
+// summaries
+const summariesRouter = require(`./routes/summaries`)
+app.use(`/`, summariesRouter)
+
 // setting up the server
 const port = process.env.PORT || 5000
 
