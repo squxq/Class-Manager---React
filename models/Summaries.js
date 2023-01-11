@@ -10,13 +10,17 @@ const SummariesSchema = new mongoose.Schema(
       type: String,
       required: [true, "A summary must have a state"],
       enum: {
-        values: ["Finished", "Pending", "Not Registered"],
+        values: ["Finished", "Pending"],
         message: ["{VALUE} is not a valid summary state."],
       },
     },
     content: {
       type: String,
       required: [true, "A summary must have content"],
+    },
+    teacher: {
+      type: mongoose.ObjectId,
+      required: [true, "A summary must have been created by a teacher."],
     },
     class: {
       type: mongoose.ObjectId,

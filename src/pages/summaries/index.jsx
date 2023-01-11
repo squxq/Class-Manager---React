@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { styled } from "@mui/system"
+import { styled, alpha } from "@mui/system"
 import {
   Box,
   Typography,
@@ -7,10 +7,23 @@ import {
   IconButton,
   InputAdornment,
   TextField,
-  Collapse,
+  Menu,
+  MenuItem,
+  Divider,
+  Stack,
+  Alert,
 } from "@mui/material"
-import { KeyboardArrowUp, KeyboardArrowDown, Search } from "@mui/icons-material"
-import TableCell, { tableCellClasses } from "@mui/material/TableCell"
+import {
+  Search,
+  Delete,
+  KeyboardArrowDown,
+  Edit,
+  FileCopy,
+  Archive,
+  MoreHoriz,
+  Groups2Outlined,
+  ArrowForwardIos,
+} from "@mui/icons-material"
 import {
   DataGrid,
   GridToolbarContainer,
@@ -112,14 +125,71 @@ const DataGridCustomToolbar = () => {
   )
 }
 
+const StyledMenu = styled((props) => (
+  <Menu
+    elevation={0}
+    anchorOrigin={{
+      vertical: "bottom",
+      horizontal: "right",
+    }}
+    transformOrigin={{
+      vertical: "top",
+      horizontal: "right",
+    }}
+    {...props}
+  />
+))(({ theme }) => ({
+  "& .MuiPaper-root": {
+    borderRadius: 6,
+    marginTop: "1rem",
+    minWidth: 180,
+    // color:
+    //   // theme.palette.mode === "light"
+    //   //   ? "rgb(55, 65, 81)"
+    //   //   : theme.palette.grey[300],
+    boxShadow:
+      "rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px",
+    "& .MuiMenu-list": {
+      padding: "4px 0",
+    },
+    "& .MuiMenuItem-root": {
+      "& .MuiSvgIcon-root": {
+        fontSize: 18,
+        // color: theme.palette.text.secondary,
+        marginRight: "1.5rem",
+      },
+      "&:active": {
+        // backgroundColor: alpha(
+        //   theme.palette.primary.main,
+        //   theme.palette.action.selectedOpacity
+        // ),
+      },
+    },
+  },
+}))
+
 const Summaries = () => {
   const [summariesData, setSummariesData] = useState(false)
   const [summaries, setSummaries] = useState([])
 
+  const [anchorEl, setAnchorEl] = React.useState(null)
+  const open = Boolean(anchorEl)
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget)
+  }
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
   const { id: userId } = useParams()
+
+  const [classes, setClasses] = useState([])
+  const [selectedClass, setSelectedClass] = useState({})
+  const [classError, setClassError] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log(userId)
       await axios({
         method: "get",
         url: `http://localhost:5000/summaries/${userId}`,
@@ -127,12 +197,45 @@ const Summaries = () => {
         .then((res) => {
           console.log(res)
           setSummariesData(res.data.success)
+          setClasses(res.data.classes)
+          console.log(res.data.summaries)
+          setSummaries(res.data.summaries)
         })
         .catch((err) => console.log(err))
     }
 
     fetchData()
   }, [])
+
+  const datagridRef = React.createRef()
+
+  const createSummary = async () => {
+    if (!selectedClass.name) {
+      setClassError(true)
+      setTimeout(() => {
+        setClassError(false)
+      }, 2000)
+    } else {
+      await axios({
+        method: "post",
+        url: `http://localhost:5000/summaries/${userId}`,
+        data: {
+          class: selectedClass.id,
+        },
+      })
+        .then((res) => {
+          console.log(res)
+          setSummaries([...summaries, res.data.summary])
+        })
+        .catch((err) => console.log(err))
+    }
+  }
+
+  const selectClass = async () => {
+    setAnchorEl(true)
+  }
+
+  const updateSummary = async () => {}
 
   switch (summariesData) {
     case false:
@@ -150,22 +253,86 @@ const Summaries = () => {
             <Typography variant="h4" color="#f6f6f6">
               Summaries
             </Typography>
-            <Button
-              variant="contained"
-              sx={{
-                margin: "0rem 1rem",
-                backgroundColor: "#3AAFA9",
-                color: "#f6f6f6",
-                "&:hover": {
-                  backgroundColor: "rgb(58, 175, 169, 0.7)",
-                },
-              }}
-              onClick={() => {
-                console.log("clicked")
-              }}
-            >
-              Create
-            </Button>
+            <Box sx={{ display: "flex", flexDirection: "row" }}>
+              {classError && (
+                <Stack>
+                  <Alert
+                    variant="outlined"
+                    severity="error"
+                    sx={{
+                      padding: "1px 15px 1px 10px",
+                      height: "41px !important",
+                      fontSize: "0.85rem",
+                      "& .MuiAlert-message": {
+                        paddingTop: "9px",
+                      },
+                    }}
+                  >
+                    Please select a Class
+                  </Alert>
+                </Stack>
+              )}
+              <Button
+                variant="contained"
+                sx={{
+                  margin: "0rem 1rem",
+                  backgroundColor: "#3AAFA9",
+                  color: "#f6f6f6",
+                  fontSize: "1rem",
+                  "&:hover": {
+                    backgroundColor: "rgb(58, 175, 169, 0.7)",
+                  },
+                }}
+                onClick={createSummary}
+              >
+                Create New Summary
+              </Button>
+              <Button
+                id="demo-customized-button"
+                aria-controls={open ? "demo-customized-menu" : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? "true" : undefined}
+                variant="contained"
+                disableElevation
+                onClick={handleClick}
+                endIcon={<KeyboardArrowDown />}
+                sx={{
+                  backgroundColor: "#3AAFA9",
+                  color: "#f6f6f6",
+                  fontSize: "1rem",
+                  "&:hover": {
+                    backgroundColor: "rgb(58, 175, 169, 0.7)",
+                  },
+                }}
+              >
+                {selectedClass.name ? selectedClass.name : "Class"}
+              </Button>
+              <StyledMenu
+                id="demo-customized-menu"
+                MenuListProps={{
+                  "aria-labelledby": "demo-customized-button",
+                }}
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+              >
+                {classes.map((singleClass) => {
+                  return (
+                    <MenuItem
+                      key={singleClass.id}
+                      onClick={() => {
+                        handleClose()
+                        setSelectedClass(singleClass)
+                      }}
+                      disableRipple
+                    >
+                      <Groups2Outlined />
+                      {singleClass.name}
+                    </MenuItem>
+                  )
+                })}
+              </StyledMenu>
+            </Box>
           </Box>
           <Box
             margin="2rem 2rem 2rem 4.5rem"
@@ -220,27 +387,9 @@ const Summaries = () => {
             }}
           >
             <DataGrid
+              ref={datagridRef}
               getRowId={(row) => row.id}
-              rows={[
-                {
-                  id: "jklashdfaskj",
-                  display: "",
-                  created: "yesterday",
-                  state: "done",
-                  number: "34",
-                  content: "correcao do tpc etc",
-                  updated: "today",
-                },
-                {
-                  id: "sdfjkhgskdjfg",
-                  display: "",
-                  created: "today",
-                  state: "done",
-                  number: "38",
-                  content: "correcao do tpc etc",
-                  updated: "today",
-                },
-              ]}
+              rows={summaries}
               columns={[
                 {
                   field: "created",
@@ -253,6 +402,11 @@ const Summaries = () => {
                   flex: 0.5,
                 },
                 {
+                  field: "class",
+                  headerName: "Class",
+                  flex: 0.5,
+                },
+                {
                   field: "number",
                   headerName: "Number",
                   flex: 0.5,
@@ -261,11 +415,27 @@ const Summaries = () => {
                   field: "content",
                   headerName: "Content",
                   flex: 1,
+                  editable: true,
                 },
                 {
                   field: "updated",
                   headerName: "Updated",
                   flex: 0.5,
+                },
+                {
+                  field: "delete",
+                  headerName: "Delete",
+                  flex: 0.2,
+                  sortable: false,
+                  renderCell: () => {
+                    return (
+                      <Box>
+                        <IconButton>
+                          <Delete />
+                        </IconButton>
+                      </Box>
+                    )
+                  },
                 },
               ]}
               pageSize={10}
@@ -287,6 +457,7 @@ const Summaries = () => {
                   // handleStudentClick,
                 },
               }}
+              onCellEditCommit={updateSummary}
             />
           </Box>
         </Box>

@@ -130,7 +130,9 @@ const Navbar = ({ data }) => {
               aria-labelledby="demo-positioned-button"
               anchorEl={anchorEl}
               open={open}
-              onClose={handleClose}
+              onClose={() => {
+                setAnchorEl(null)
+              }}
               anchorOrigin={{
                 vertical: "top",
                 horizontal: "left",
