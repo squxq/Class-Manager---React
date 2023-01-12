@@ -14,6 +14,7 @@ import {
   Group,
   SchoolOutlined,
   SettingsOutlined,
+  Assignment,
 } from "@mui/icons-material"
 
 const navItems = [
@@ -34,8 +35,8 @@ const navItems = [
     icon: <ReceiptLongOutlined />,
   },
   {
-    text: "Geography",
-    icon: <PublicOutlined />,
+    text: "Assignments",
+    icon: <Assignment />,
   },
   {
     text: "Grades",

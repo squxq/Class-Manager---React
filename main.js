@@ -54,6 +54,10 @@ app.use(`/`, classesRouter)
 const summariesRouter = require(`./routes/summaries`)
 app.use(`/`, summariesRouter)
 
+// assignments
+const assignmentsRouter = require(`./routes/assignments.js`)
+app.use(`/`, assignmentsRouter)
+
 // setting up the server
 const port = process.env.PORT || 5000
 
