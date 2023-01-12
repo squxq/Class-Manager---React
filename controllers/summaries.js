@@ -30,18 +30,31 @@ const getAllSummaries = async (req, res) => {
         }
 
         const summaries = docs.map((doc) => {
-          // const docs = await Class.find({ _id: doc.class })
-          return {
-            id: doc._id,
-            created: doc.createdAt,
-            state: doc.state,
-            class: doc._id,
-            number: doc.number,
-            content: doc.content,
-            updated: doc.updatedAt,
+          for (let singleClass of classes) {
+            if (
+              JSON.stringify(singleClass.id).match(/"(.*?)"/)[1] ===
+              JSON.stringify(doc.class).match(/"(.*?)"/)[1]
+            ) {
+              return {
+                id: doc._id,
+                created: `${JSON.stringify(doc.createdAt)
+                  .split("T")[0]
+                  .slice(1)} - ${
+                  JSON.stringify(doc.createdAt).split("T")[1].split(".")[0]
+                }`,
+                state: doc.state,
+                class: singleClass.name,
+                number: doc.number,
+                content: doc.content,
+                updated: `${JSON.stringify(doc.updatedAt)
+                  .split("T")[0]
+                  .slice(1)} - ${
+                  JSON.stringify(doc.updatedAt).split("T")[1].split(".")[0]
+                }`,
+              }
+            }
           }
         })
-        console.log(summaries)
 
         return res.status(StatusCodes.OK).json({
           success: true,
@@ -88,7 +101,7 @@ const createSummary = async (req, res) => {
                 err: err.message,
               })
             }
-            const number = docs.length
+            const number = docs.length + 1
             const summary = await Summaries.create({
               number,
               state: "Pending",
@@ -125,7 +138,133 @@ const createSummary = async (req, res) => {
   }
 }
 
+const patchSummary = async (req, res) => {
+  try {
+    const { id: summaryId, content: summaryContent } = req.body
+    const { id: teacherId } = req.params
+    User.find({ _id: teacherId }, (err, teacher) => {
+      if (err) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: err.message,
+        })
+      }
+      Summaries.findOneAndUpdate(
+        { _id: summaryId },
+        { content: summaryContent },
+        { new: true },
+        (err, summary) => {
+          if (err) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+              success: false,
+              err: err.message,
+            })
+          }
+
+          res.status(StatusCodes.OK).json({
+            success: true,
+            summary,
+          })
+        }
+      )
+    })
+  } catch (err) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
+const deleteSummary = async (req, res) => {
+  try {
+    const { id: teacherId } = req.params
+    const { summaryId } = req.query
+    User.find({ _id: teacherId }, (err, user) => {
+      if (err) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: err.message,
+        })
+      }
+
+      Summaries.findOneAndDelete({ _id: summaryId }, (err) => {
+        if (err) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: `Summary not found...`,
+          })
+        }
+
+        Summaries.find({ teacher: user[0]._id }, (err, docs) => {
+          if (err) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              err: err.message,
+            })
+          }
+
+          Class.find({ teacher: user[0]._id }, (err, newDocs) => {
+            if (err) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: err.message,
+              })
+            }
+
+            const classes = newDocs.map((doc) => {
+              return {
+                id: doc._id,
+                name: doc.name,
+              }
+            })
+
+            const summaries = docs.map((doc) => {
+              for (let singleClass of classes) {
+                if (
+                  JSON.stringify(singleClass.id).match(/"(.*?)"/)[1] ===
+                  JSON.stringify(doc.class).match(/"(.*?)"/)[1]
+                ) {
+                  return {
+                    id: doc._id,
+                    created: `${JSON.stringify(doc.createdAt)
+                      .split("T")[0]
+                      .slice(1)} - ${
+                      JSON.stringify(doc.createdAt).split("T")[1].split(".")[0]
+                    }`,
+                    state: doc.state,
+                    class: singleClass.name,
+                    number: doc.number,
+                    content: doc.content,
+                    updated: `${JSON.stringify(doc.updatedAt)
+                      .split("T")[0]
+                      .slice(1)} - ${
+                      JSON.stringify(doc.updatedAt).split("T")[1].split(".")[0]
+                    }`,
+                  }
+                }
+              }
+            })
+
+            res.status(StatusCodes.OK).json({
+              success: true,
+              summaries,
+            })
+          })
+        })
+      })
+    })
+  } catch (err) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
 module.exports = {
   getAllSummaries,
   createSummary,
+  patchSummary,
+  deleteSummary,
 }

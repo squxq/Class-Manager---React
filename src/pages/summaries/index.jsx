@@ -231,11 +231,39 @@ const Summaries = () => {
     }
   }
 
-  const selectClass = async () => {
-    setAnchorEl(true)
+  const updateSummary = async (e) => {
+    console.log(e)
+    await axios({
+      method: "patch",
+      url: `http://localhost:5000/summaries/${userId}`,
+      data: {
+        id: e.id,
+        content: e.value,
+      },
+    })
+      .then((res) => {
+        console.log(res)
+      })
+      .catch((err) => console.log(err))
   }
 
-  const updateSummary = async () => {}
+  const handleDeleteSummary = async (e) => {
+    await axios({
+      method: "delete",
+      url: `http://localhost:5000/summaries/${userId}`,
+      params: {
+        summaryId:
+          e.currentTarget.parentElement.parentElement.parentElement.parentElement.getAttribute(
+            "data-id"
+          ),
+      },
+    })
+      .then((res) => {
+        console.log(res)
+        setSummaries(res.data.summaries)
+      })
+      .catch((err) => console.log(err))
+  }
 
   switch (summariesData) {
     case false:
@@ -394,33 +422,36 @@ const Summaries = () => {
                 {
                   field: "created",
                   headerName: "Created",
-                  flex: 0.5,
+                  flex: 0.6,
                 },
                 {
                   field: "state",
                   headerName: "State",
-                  flex: 0.5,
+                  flex: 0.4,
                 },
                 {
                   field: "class",
                   headerName: "Class",
-                  flex: 0.5,
+                  flex: 0.4,
                 },
                 {
                   field: "number",
                   headerName: "Number",
-                  flex: 0.5,
+                  flex: 0.4,
                 },
                 {
                   field: "content",
                   headerName: "Content",
-                  flex: 1,
+                  flex: 1.2,
                   editable: true,
+                  preProcessEditCellProps: (e) => {
+                    return { ...e.props, error: e.props.value === "" }
+                  },
                 },
                 {
                   field: "updated",
                   headerName: "Updated",
-                  flex: 0.5,
+                  flex: 0.6,
                 },
                 {
                   field: "delete",
@@ -431,7 +462,7 @@ const Summaries = () => {
                     return (
                       <Box>
                         <IconButton>
-                          <Delete />
+                          <Delete onClick={handleDeleteSummary} />
                         </IconButton>
                       </Box>
                     )
