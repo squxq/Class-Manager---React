@@ -1,4 +1,3 @@
-import { Assignment } from "@mui/icons-material"
 import React, { lazy, Suspense } from "react"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 
@@ -12,6 +11,7 @@ const Calendar = lazy(() => import("./pages/calendar"))
 const Classes = lazy(() => import("./pages/classes"))
 const Summaries = lazy(() => import("./pages/summaries"))
 const Assignments = lazy(() => import("./pages/assignments"))
+const Assignment = lazy(() => import("./pages/assignments/assignment"))
 
 const App = () => {
   return (
@@ -36,6 +36,11 @@ const App = () => {
             <Route path="/classes/:id" element={<Classes />} exact />
             <Route path="/summaries/:id" element={<Summaries />} exact />
             <Route path="/assignments/:id" element={<Assignments />} exact />
+            <Route
+              path="/assignments/:id/assignment/:id"
+              element={<Assignment />}
+              exact
+            />
           </Route>
         </Routes>
       </Suspense>

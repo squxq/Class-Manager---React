@@ -8,13 +8,19 @@ import {
   CardContent,
   CardActionArea,
 } from "@mui/material"
-import { useParams } from "react-router-dom"
+import {
+  useParams,
+  useNavigate,
+  createSearchParams,
+  useSearchParams,
+} from "react-router-dom"
 import axios from "axios"
 
-const customCard = (text, key) => {
+const CustomCard = ({ text, id, customClickEvent }) => {
   return (
     <Card
-      key={key}
+      onClick={() => customClickEvent(id)}
+      key={id}
       sx={{
         m: "1rem",
         backgroundColor: "#171923",
@@ -50,7 +56,11 @@ const Assignments = () => {
     setValue(newValue)
   }
 
+  const navigate = useNavigate()
   const { id: userId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const [assignmentsData, setAssignmentsData] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +70,7 @@ const Assignments = () => {
       })
         .then((res) => {
           console.log(res)
+          setAssignmentsData(true)
         })
         .catch((err) => console.log(err))
     }
@@ -67,50 +78,75 @@ const Assignments = () => {
     fetchData()
   })
 
-  return (
-    <Box sx={{ m: "1.5rem 2.5rem" }}>
-      <Box margin="2rem">
-        <Typography variant="h4" color="#f6f6f6">
-          Assignments
-        </Typography>
-        <Box
-          sx={{
-            "& .MuiButtonBase-root": {
-              color: "#f6f6f6",
-            },
-            "& .MuiButtonBase-root::selection": {
-              color: "#3AAFA9",
-            },
-            "& .MuiButtonBase-root:hover": {
-              color: "#3AAFA9",
-            },
-            "& .MuiTabs-indicator": {
-              backgroundColor: "#3AAFA9",
-            },
-          }}
-        >
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            sx={{ margin: "1rem 0rem 1rem 0rem" }}
-          >
-            <Tab value="Assigned" label="Assigned" sx={{ m: "0rem 0.5rem" }} />
-            <Tab value="Pending" label="Pending" sx={{ m: "0rem 0.5rem" }} />
-            <Tab
-              value="Completed"
-              label="Completed"
-              sx={{ m: "0rem 0.5rem" }}
-            />
-          </Tabs>
+  const handleCardClick = async (id) => {
+    navigate(`/assignments/${userId}/assignment/${id}`)
+  }
+
+  switch (assignmentsData) {
+    case false:
+      return <div>Something went wrong please try again later...</div>
+    case true: {
+      return (
+        <Box sx={{ m: "1.5rem 2.5rem" }}>
+          <Box margin="2rem">
+            <Typography variant="h4" color="#f6f6f6">
+              Assignments
+            </Typography>
+            <Box
+              sx={{
+                "& .MuiButtonBase-root": {
+                  color: "#f6f6f6",
+                },
+                "& .MuiButtonBase-root::selection": {
+                  color: "#3AAFA9",
+                },
+                "& .MuiButtonBase-root:hover": {
+                  color: "#3AAFA9",
+                },
+                "& .MuiTabs-indicator": {
+                  backgroundColor: "#3AAFA9",
+                },
+              }}
+            >
+              <Tabs
+                value={value}
+                onChange={handleChange}
+                sx={{ margin: "1rem 0rem 1rem 0rem" }}
+              >
+                <Tab
+                  value="Assigned"
+                  label="Assigned"
+                  sx={{ m: "0rem 0.5rem" }}
+                />
+                <Tab
+                  value="Pending"
+                  label="Pending"
+                  sx={{ m: "0rem 0.5rem" }}
+                />
+                <Tab
+                  value="Completed"
+                  label="Completed"
+                  sx={{ m: "0rem 0.5rem" }}
+                />
+              </Tabs>
+            </Box>
+          </Box>
+          <Box sx={{ marginTop: "0.5rem", marginRight: "1rem" }}>
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((card) => {
+              return (
+                <CustomCard
+                  text={`Hello ${card}.`}
+                  key={`${card}`}
+                  id={`${card}`}
+                  customClickEvent={handleCardClick}
+                />
+              )
+            })}
+          </Box>
         </Box>
-      </Box>
-      <Box sx={{ marginTop: "0.5rem", marginRight: "1rem" }}>
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((card) => {
-          return customCard(`Hello ${card}.`, card)
-        })}
-      </Box>
-    </Box>
-  )
+      )
+    }
+  }
 }
 
 export default Assignments
