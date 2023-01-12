@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { styled, alpha } from "@mui/system"
+import { styled } from "@mui/system"
 import {
   Box,
   Typography,
@@ -17,17 +17,14 @@ import {
   Search,
   Delete,
   KeyboardArrowDown,
-  Edit,
-  FileCopy,
-  Archive,
-  MoreHoriz,
   Groups2Outlined,
-  ArrowForwardIos,
 } from "@mui/icons-material"
 import {
   DataGrid,
   GridToolbarContainer,
   GridToolbarExport,
+  GridToolbarFilterButton,
+  GridLinkOperator,
 } from "@mui/x-data-grid"
 import axios from "axios"
 import { useParams } from "react-router-dom"
@@ -73,7 +70,17 @@ const DataGridCustomToolbar = () => {
       <FlexBetween width="100%">
         <FlexBetween>
           <Box>
-            <GridToolbarExport sx={{ color: "#3AAFA9", fontSize: "1.25rem" }} />
+            <GridToolbarFilterButton
+              sx={{ color: "#3AAFA9", fontSize: "1.25rem" }}
+            />
+            <GridToolbarExport
+              sx={{
+                color: "#3AAFA9",
+                fontSize: "1.25rem",
+                marginLeft: "1rem",
+              }}
+              printOptions={{ disableToolbarButton: true }}
+            />
           </Box>
         </FlexBetween>
         <Box>
@@ -253,7 +260,7 @@ const Summaries = () => {
       url: `http://localhost:5000/summaries/${userId}`,
       params: {
         summaryId:
-          e.currentTarget.parentElement.parentElement.parentElement.parentElement.getAttribute(
+          e.currentTarget.parentElement.parentElement.parentElement.getAttribute(
             "data-id"
           ),
       },
@@ -263,6 +270,17 @@ const Summaries = () => {
         setSummaries(res.data.summaries)
       })
       .catch((err) => console.log(err))
+  }
+
+  const [queryOptions, setQueryOptions] = useState({})
+
+  const onFilterChange = async (filterModel) => {
+    console.log(filterModel.items[0])
+    setQueryOptions({ filterModel: { ...filterModel.items[0] } })
+    await axios({
+      method: "get",
+      url: `http://localhost:5000/summaries/${userId}`,
+    })
   }
 
   switch (summariesData) {
@@ -461,8 +479,8 @@ const Summaries = () => {
                   renderCell: () => {
                     return (
                       <Box>
-                        <IconButton>
-                          <Delete onClick={handleDeleteSummary} />
+                        <IconButton onClick={handleDeleteSummary}>
+                          <Delete />
                         </IconButton>
                       </Box>
                     )
@@ -479,16 +497,58 @@ const Summaries = () => {
               }}
               components={{ Toolbar: DataGridCustomToolbar }}
               componentsProps={{
-                toolbar: {
-                  // searchInput,
-                  // setSearchInput,
-                  // setAllStudents,
-                  // setSearchParams,
-                  // searchParams,
-                  // handleStudentClick,
+                filterPanel: {
+                  // Force usage of "And" operator
+                  linkOperators: [GridLinkOperator.And],
+                  // Display columns by ascending alphabetical order
+                  columnsSort: "asc",
+                  filterFormProps: {
+                    // Customize inputs by passing props
+                    linkOperatorInputProps: {
+                      variant: "outlined",
+                      size: "small",
+                    },
+                    columnInputProps: {
+                      variant: "outlined",
+                      size: "small",
+                      sx: { mt: "auto" },
+                    },
+                    operatorInputProps: {
+                      variant: "outlined",
+                      size: "small",
+                      sx: { mt: "auto" },
+                    },
+                    valueInputProps: {
+                      InputComponentProps: {
+                        variant: "outlined",
+                        size: "small",
+                      },
+                    },
+                    deleteIconProps: {
+                      sx: {
+                        "& .MuiSvgIcon-root": { color: "#d32f2f" },
+                      },
+                    },
+                  },
+                  sx: {
+                    // Customize inputs using css selectors
+                    "& .MuiDataGrid-filterForm": { p: 2 },
+                    "& .MuiDataGrid-filterForm:nth-child(even)": {
+                      backgroundColor: (theme) =>
+                        theme.palette.mode === "dark" ? "#444" : "#f5f5f5",
+                    },
+                    "& .MuiDataGrid-filterFormLinkOperatorInput": { mr: 2 },
+                    "& .MuiDataGrid-filterFormColumnInput": {
+                      mr: 2,
+                      width: 150,
+                    },
+                    "& .MuiDataGrid-filterFormOperatorInput": { mr: 2 },
+                    "& .MuiDataGrid-filterFormValueInput": { width: 200 },
+                  },
                 },
               }}
               onCellEditCommit={updateSummary}
+              onFilterModelChange={onFilterChange}
             />
           </Box>
         </Box>

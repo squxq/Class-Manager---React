@@ -20,8 +20,12 @@ import {
   FormControlLabel,
   InputAdornment,
 } from "@mui/material"
-import { FilterListOutlined, PeopleAlt, SingleBed } from "@mui/icons-material"
-import { DataGrid } from "@mui/x-data-grid"
+import { FilterListOutlined, PeopleAlt } from "@mui/icons-material"
+import {
+  DataGrid,
+  GridToolbarFilterButton,
+  GridLinkOperator,
+} from "@mui/x-data-grid"
 import { Search, Add } from "@mui/icons-material"
 import { GridToolbarContainer, GridToolbarExport } from "@mui/x-data-grid"
 import { styled } from "@mui/system"
@@ -176,10 +180,16 @@ const DataGridCustomToolbar = ({
       <FlexBetween width="100%">
         <FlexBetween>
           <Box>
-            <GridToolbarExport sx={{ color: "#3AAFA9", fontSize: "1.25rem" }} />
+            <GridToolbarFilterButton
+              sx={{ color: "#3AAFA9", fontSize: "1.25rem" }}
+            />
+            <GridToolbarExport
+              sx={{ color: "#3AAFA9", fontSize: "1.25rem", marginLeft: "1rem" }}
+              printOptions={{ disableToolbarButton: true }}
+            />
             <Button
               variant="text"
-              sx={{ color: "#3AAFA9", fontSize: "1.25rem", marginLeft: "2rem" }}
+              sx={{ color: "#3AAFA9", fontSize: "1.25rem", marginLeft: "1rem" }}
               onClick={handleStudentClick}
             >
               + Update
@@ -739,6 +749,55 @@ const Classes = () => {
                       setSearchParams,
                       searchParams,
                       handleStudentClick,
+                    },
+                    filterPanel: {
+                      // Force usage of "And" operator
+                      linkOperators: [GridLinkOperator.And],
+                      // Display columns by ascending alphabetical order
+                      columnsSort: "asc",
+                      filterFormProps: {
+                        // Customize inputs by passing props
+                        linkOperatorInputProps: {
+                          variant: "outlined",
+                          size: "small",
+                        },
+                        columnInputProps: {
+                          variant: "outlined",
+                          size: "small",
+                          sx: { mt: "auto" },
+                        },
+                        operatorInputProps: {
+                          variant: "outlined",
+                          size: "small",
+                          sx: { mt: "auto" },
+                        },
+                        valueInputProps: {
+                          InputComponentProps: {
+                            variant: "outlined",
+                            size: "small",
+                          },
+                        },
+                        deleteIconProps: {
+                          sx: {
+                            "& .MuiSvgIcon-root": { color: "#d32f2f" },
+                          },
+                        },
+                      },
+                      sx: {
+                        // Customize inputs using css selectors
+                        "& .MuiDataGrid-filterForm": { p: 2 },
+                        "& .MuiDataGrid-filterForm:nth-child(even)": {
+                          backgroundColor: (theme) =>
+                            theme.palette.mode === "dark" ? "#444" : "#f5f5f5",
+                        },
+                        "& .MuiDataGrid-filterFormLinkOperatorInput": { mr: 2 },
+                        "& .MuiDataGrid-filterFormColumnInput": {
+                          mr: 2,
+                          width: 150,
+                        },
+                        "& .MuiDataGrid-filterFormOperatorInput": { mr: 2 },
+                        "& .MuiDataGrid-filterFormValueInput": { width: 200 },
+                      },
                     },
                   }}
                 />
