@@ -18,6 +18,14 @@ const AssignmentsSchema = new mongoose.Schema(
       type: String,
       required: [true, "An assignment must have some instructions."],
     },
+    reference: {
+      // refers to the reference work teachers can add to their assignments
+      type: Array,
+    },
+    classes: {
+      type: Array,
+      required: [true, "An assignment must be assigned to a class."],
+    },
     status: {
       type: String,
       required: [true, "An assignment needs a status."],
@@ -29,14 +37,6 @@ const AssignmentsSchema = new mongoose.Schema(
     teacher: {
       type: mongoose.ObjectId,
       required: [true, "An assignment must have a teacher."],
-    },
-    class: {
-      type: mongoose.ObjectId,
-      required: [true, "An assignment must be assigned to a class."],
-    },
-    students: {
-      // refers to the students that answered the assignment
-      type: Array,
     },
   },
   { timestamps: true }
