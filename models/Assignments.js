@@ -18,14 +18,6 @@ const AssignmentsSchema = new mongoose.Schema(
       type: String,
       required: [true, "An assignment must have some instructions."],
     },
-    reference: {
-      // refers to the reference work teachers can add to their assignments
-      type: Array,
-    },
-    classes: {
-      type: Array,
-      required: [true, "An assignment must be assigned to a class."],
-    },
     status: {
       type: String,
       required: [true, "An assignment needs a status."],
@@ -33,6 +25,14 @@ const AssignmentsSchema = new mongoose.Schema(
         values: ["Pending", "Completed"],
         message: "{VALUE} is not a valid assignment status.",
       },
+    },
+    reference: {
+      // refers to the reference work teachers can add to their assignments
+      type: Array,
+    },
+    classes: {
+      type: Array,
+      required: [true, "An assignment must be assigned to a class."],
     },
     teacher: {
       type: mongoose.ObjectId,

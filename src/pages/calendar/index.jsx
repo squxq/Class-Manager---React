@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect } from "react"
 import axios from "axios"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
@@ -63,7 +63,7 @@ const Calendar = () => {
     dayjs(new Date(new Date().setHours(new Date().getDate() + 1)).toISOString())
   )
 
-  const [modalIsOpen, setIsOpen] = React.useState(false)
+  const [modalIsOpen, setIsOpen] = useState(false)
   const openModal = () => {
     setIsOpen(true)
     setStartValue(new Date().toISOString())

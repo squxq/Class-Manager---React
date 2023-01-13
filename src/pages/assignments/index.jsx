@@ -23,19 +23,26 @@ import { useParams, useSearchParams } from "react-router-dom"
 import { KeyboardArrowLeft } from "@mui/icons-material"
 import { styled } from "@mui/material/styles"
 import axios from "axios"
+import Modal from "react-modal"
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker"
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
+import dayjs from "dayjs"
 
-const names = [
-  "Oliver Hansen",
-  "Van Henry",
-  "April Tucker",
-  "Ralph Hubbard",
-  "Omar Alexander",
-  "Carlos Abbott",
-  "Miriam Wagner",
-  "Bradley Wilkerson",
-  "Virginia Andrews",
-  "Kelly Snyder",
-]
+Modal.setAppElement("#root")
+
+const customStyles = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+    zIndex: "9999",
+  },
+  overlay: { zIndex: 1000, backgroundColor: "rgb(23,25,35, 0.4)" },
+}
 
 const CssTextField = styled(TextField)({
   width: "100%",
@@ -97,6 +104,8 @@ const Assignments = () => {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [assignmentsData, setAssignmentsData] = useState(false)
+  const [classes, setClasses] = useState([])
+  const [assignments, setAssignments] = useState([])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -107,6 +116,8 @@ const Assignments = () => {
         .then((res) => {
           console.log(res)
           setAssignmentsData(true)
+          setClasses(res.data.classes)
+          setAssignments(res.data.assignments)
         })
         .catch((err) => console.log(err))
     }
@@ -131,16 +142,61 @@ const Assignments = () => {
       .catch((err) => console.log(err))
   }
 
-  const [personName, setPersonName] = useState([])
+  const [className, setClassName] = useState([])
 
   const handleSelectChange = (event) => {
+    console.log(event)
     const {
       target: { value },
     } = event
-    setPersonName(
+    setClassName(
       // On autofill we get a stringified value.
       typeof value === "string" ? value.split(",") : value
     )
+  }
+
+  const [assignmentName, setAssignmentName] = useState("")
+  const [assignmentInstructions, setAssignmentInstructions] = useState("")
+  const [assignmentStatus, setAssignmentStatus] = useState("Pending")
+
+  const [startDate, setStartDate] = useState({})
+  const [endDate, setEndDate] = useState({})
+
+  const [startValue, setStartValue] = useState(dayjs(new Date().toISOString()))
+  const [endValue, setEndValue] = useState(
+    dayjs(new Date(new Date().setHours(new Date().getDate() + 1)).toISOString())
+  )
+
+  const [modalIsOpen, setModalIsOpen] = useState(false)
+  const openModal = async () => {
+    setModalIsOpen(true)
+    setStartValue(new Date().toISOString())
+    console.log(startValue)
+    setEndValue(
+      new Date(new Date().setHours(new Date().getHours() + 1)).toISOString()
+    )
+  }
+  const closeModal = async () => {
+    setModalIsOpen(false)
+  }
+
+  const handleCreateAssignmentClick = async () => {
+    await axios({
+      method: "post",
+      url: `http://localhost:5000/assignments/${userId}`,
+      data: {
+        assignmentName,
+        assignmentStartDate: startDate,
+        assignmentEndDate: endDate,
+        assignmentInstructions,
+        assignmentStatus,
+        classes: classes.filter((sClass) => {
+          for (let SClass of className) {
+            return sClass.name === SClass
+          }
+        }),
+      },
+    })
   }
 
   switch (assignmentsData) {
@@ -189,7 +245,19 @@ const Assignments = () => {
                   label="Completed"
                   sx={{ m: "0rem 0.5rem" }}
                 />
-                <Tab value="Create" label="Create" sx={{ m: "0rem 0.5rem" }} />
+                <Tab
+                  value="Create"
+                  label="Create"
+                  sx={{ m: "0rem 0.5rem" }}
+                  onClick={() => {
+                    setStartValue(new Date().toISOString())
+                    setEndValue(
+                      new Date(
+                        new Date().setHours(new Date().getHours() + 1)
+                      ).toISOString()
+                    )
+                  }}
+                />
               </Tabs>
             </Box>
           </Box>
@@ -208,10 +276,9 @@ const Assignments = () => {
             </Box>
           ) : (
             <Box>
-              <Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Button
                   sx={{
-                    padding: "0px",
                     color: "#f6f6f6",
                     "&:hover": {
                       backgroundColor: "transparent",
@@ -221,6 +288,22 @@ const Assignments = () => {
                 >
                   <KeyboardArrowLeft />
                   <Typography variant="h6">Back</Typography>
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleCreateAssignmentClick}
+                  sx={{
+                    border: "1px solid #f6f6f6",
+                    color: "#f6f6f6",
+                    boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
+                    "&:hover": {
+                      backgroundColor: "transparent",
+                      border: "1px solid #3AAFA9",
+                      boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
+                    },
+                  }}
+                >
+                  <Typography variant="h5">Create</Typography>
                 </Button>
               </Box>
               <Box
@@ -257,6 +340,8 @@ const Assignments = () => {
                       placeholder="Please type your assignment title..."
                       variant="standard"
                       multiline={true}
+                      value={assignmentName}
+                      onChange={(e) => setAssignmentName(e.target.value)}
                       sx={{
                         width: "80% !important",
                         marginLeft: "1rem",
@@ -284,6 +369,10 @@ const Assignments = () => {
                       placeholder="Please select your assignment start date..."
                       variant="standard"
                       multiline={true}
+                      value={`${startValue.split("T")[0]} - ${
+                        startValue.split("T")[1].split(".")[0]
+                      }`}
+                      onClick={openModal}
                       sx={{
                         width: "50% !important",
                         margin: "0.5rem 0rem 0.5rem 1rem",
@@ -298,6 +387,10 @@ const Assignments = () => {
                       variant="standard"
                       multiline={true}
                       m="0.5rem"
+                      value={`${endValue.split("T")[0]} - ${
+                        endValue.split("T")[1].split(".")[0]
+                      }`}
+                      onClick={openModal}
                       sx={{
                         width: "50% !important",
                         margin: "0.5rem 0rem 2rem 1rem",
@@ -323,6 +416,10 @@ const Assignments = () => {
                       placeholder="Please type your assignment instructions..."
                       variant="standard"
                       multiline={true}
+                      value={assignmentInstructions}
+                      onChange={(e) => {
+                        setAssignmentInstructions(e.target.value)
+                      }}
                       sx={{
                         width: "90% !important",
                         margin: "0.5rem 0rem 0.5rem 1rem",
@@ -348,6 +445,7 @@ const Assignments = () => {
                         Assignment Status
                       </Typography>
                       <RadioGroup
+                        defaultValue={"Pending"}
                         row
                         aria-labelledby="demo-row-radio-buttons-group-label"
                         name="row-radio-buttons-group"
@@ -370,6 +468,7 @@ const Assignments = () => {
                             />
                           }
                           label="Completed"
+                          onClick={() => setAssignmentStatus("Completed")}
                         />
                         <FormControlLabel
                           value="Pending"
@@ -388,6 +487,7 @@ const Assignments = () => {
                             />
                           }
                           label="Pending"
+                          onClick={() => setAssignmentStatus("Pending")}
                         />
                       </RadioGroup>
                     </FormControl>
@@ -409,7 +509,7 @@ const Assignments = () => {
                     <FormControl sx={{ width: "650px" }}>
                       <Select
                         multiple
-                        value={personName}
+                        value={className}
                         onChange={handleSelectChange}
                         variant="standard"
                         placeholder="Please select at least a class for this assignment."
@@ -435,6 +535,7 @@ const Assignments = () => {
                           return (
                             <Box
                               sx={{
+                                margin: "5px",
                                 display: "flex",
                                 flexWrap: "wrap",
                                 gap: 1,
@@ -447,9 +548,12 @@ const Assignments = () => {
                                     fontSize: "25px",
                                     background: "transparent",
                                     color: "#f6f6f6",
+                                    boxShadow:
+                                      "0 1px 2px rgba(58, 175, 169, 0.7)",
                                     "&:hover": {
-                                      color: "#3AAFA9",
                                       cursor: "pointer",
+                                      boxShadow:
+                                        "0 5px 10px rgba(58, 175, 169, 0.4)",
                                     },
                                   }}
                                   key={value}
@@ -468,10 +572,16 @@ const Assignments = () => {
                           },
                         }}
                       >
-                        {names.map((name) => (
-                          <MenuItem key={name} value={name}>
-                            <Checkbox checked={personName.indexOf(name) > -1} />
-                            <ListItemText primary={name} />
+                        {classes.map((sClass) => (
+                          <MenuItem
+                            key={sClass._id}
+                            id={sClass._id}
+                            value={sClass.name}
+                          >
+                            <Checkbox
+                              checked={className.indexOf(sClass.name) > -1}
+                            />
+                            <ListItemText primary={sClass.name} />
                           </MenuItem>
                         ))}
                       </Select>
@@ -506,6 +616,46 @@ const Assignments = () => {
               </Box>
             </Box>
           )}
+          <Modal
+            isOpen={modalIsOpen}
+            onRequestClose={closeModal}
+            style={customStyles}
+            contentLabel="Example Modal"
+          >
+            <form display="flex">
+              <Box sx={{ display: "flex", flexDirection: "row" }}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker
+                    renderInput={(props) => (
+                      <TextField {...props} style={{ margin: "15px" }} />
+                    )}
+                    label="Start Date"
+                    value={startValue}
+                    inputFormat="DD/MM/YYYY hh:mm A"
+                    onChange={(newValue) => {
+                      setStartValue(newValue)
+                      setStartDate(newValue)
+                    }}
+                  />
+                </LocalizationProvider>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker
+                    renderInput={(props) => (
+                      <TextField {...props} style={{ margin: "15px" }} />
+                    )}
+                    label="End Date"
+                    value={endValue}
+                    inputFormat="DD/MM/YYYY hh:mm A"
+                    onChange={(newValue) => {
+                      setEndValue(newValue)
+                      setEndDate(newValue)
+                    }}
+                  />
+                </LocalizationProvider>
+              </Box>
+            </form>
+            <Box></Box>
+          </Modal>
         </Box>
       )
     }
