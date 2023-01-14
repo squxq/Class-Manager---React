@@ -8,6 +8,7 @@ const getAllAssignments = (req, res) => {
   try {
     const { id: teacherId } = req.params
     const { cardId: assignmentId } = req.query
+    const { status } = req.query
     User.findById(teacherId, (err, user) => {
       if (err) {
         return res.status(StatusCodes.NOT_FOUND).json({
@@ -31,20 +32,40 @@ const getAllAssignments = (req, res) => {
           }
         })
 
-        Assignments.find({ teacher: user._id }, (err, docs) => {
-          if (err) {
-            return res.status(StatusCodes.NOT_FOUND).json({
-              success: false,
-              err: err.message,
-            })
-          }
+        if (status === "Assigned") {
+          Assignments.find({ teacher: user._id }, (err, docs) => {
+            if (err) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: err.message,
+              })
+            }
 
-          res.status(StatusCodes.OK).json({
-            success: true,
-            classes: readyToGoClasses,
-            assignments: docs,
+            res.status(StatusCodes.OK).json({
+              success: true,
+              classes: readyToGoClasses,
+              assignments: docs,
+            })
           })
-        })
+        } else {
+          Assignments.find(
+            { teacher: user._id, status: status },
+            (err, docs) => {
+              if (err) {
+                return res.status(StatusCodes.NOT_FOUND).json({
+                  success: false,
+                  err: err.message,
+                })
+              }
+
+              res.status(StatusCodes.OK).json({
+                success: true,
+                classes: readyToGoClasses,
+                assignments: docs,
+              })
+            }
+          )
+        }
       })
     })
   } catch (err) {

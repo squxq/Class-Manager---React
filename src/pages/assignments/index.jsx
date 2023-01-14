@@ -96,7 +96,21 @@ const CustomCard = ({ text, id, customClickEvent }) => {
 
 const Assignments = () => {
   const [value, setValue] = useState("Assigned")
-  const handleChange = (e, newValue) => {
+  const handleChange = async (e, newValue) => {
+    if (newValue !== "Create") {
+      await axios({
+        method: "get",
+        url: `http://localhost:5000/assignments/${userId}`,
+        params: {
+          status: newValue,
+        },
+      })
+        .then((res) => {
+          console.log(res)
+          setAssignments(res.data.assignments)
+        })
+        .catch((err) => console.log(err))
+    }
     setValue(newValue)
   }
 
@@ -112,6 +126,9 @@ const Assignments = () => {
       await axios({
         method: "get",
         url: `http://localhost:5000/assignments/${userId}`,
+        params: {
+          status: value,
+        },
       })
         .then((res) => {
           console.log(res)
@@ -182,28 +199,16 @@ const Assignments = () => {
 
   const handleCreateAssignmentClick = async () => {
     console.log(startDate, endDate)
-    await axios({
-      method: "post",
-      url: `http://localhost:5000/assignments/${userId}`,
-      data: {
-        assignmentName,
-        assignmentStartDate: startDate,
-        assignmentEndDate: endDate,
-        assignmentInstructions,
-        assignmentStatus,
-        classes: classes.filter((sClass) => {
-          for (let SClass of className) {
-            return sClass.name === SClass
-          }
-        }),
-      },
-    })
+  }
+
+  const handleBackClick = () => {
+    setValue("Assigned")
   }
 
   switch (assignmentsData) {
     case false:
       return <div>Something went wrong please try again later...</div>
-    case true: {
+    case true:
       return (
         <Box sx={{ m: "1.5rem 2.5rem" }}>
           <Box margin="2rem">
@@ -263,20 +268,20 @@ const Assignments = () => {
             </Box>
           </Box>
           {value !== "Create" ? (
-            <Box>
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((card) => {
+            <Box height="72.9vh">
+              {assignments.map((assignment) => {
                 return (
                   <CustomCard
-                    text={`Hello ${card}.`}
-                    key={`${card}`}
-                    id={`${card}`}
+                    text={`${assignment.name}: ${assignment.instructions}`}
+                    key={assignment._id}
+                    id={assignment._id}
                     customClickEvent={handleCardClick}
                   />
                 )
               })}
             </Box>
           ) : (
-            <Box>
+            <Box height="72.9vh">
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Button
                   sx={{
@@ -286,6 +291,7 @@ const Assignments = () => {
                       color: "#3AAFA9",
                     },
                   }}
+                  onClick={handleBackClick}
                 >
                   <KeyboardArrowLeft />
                   <Typography variant="h6">Back</Typography>
@@ -311,7 +317,6 @@ const Assignments = () => {
                 sx={{
                   display: "flex",
                   flexDirection: "row",
-                  height: "69.6vh",
                   color: "#f6f6f6",
                 }}
               >
@@ -628,7 +633,11 @@ const Assignments = () => {
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DateTimePicker
                     renderInput={(props) => (
-                      <TextField {...props} style={{ margin: "15px" }} />
+                      <TextField
+                        onKeyDown={(e) => e.preventDefault()}
+                        {...props}
+                        style={{ margin: "15px" }}
+                      />
                     )}
                     label="Start Date"
                     value={startValue}
@@ -642,13 +651,22 @@ const Assignments = () => {
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DateTimePicker
                     renderInput={(props) => (
-                      <TextField {...props} style={{ margin: "15px" }} />
+                      <TextField
+                        onKeyDown={(e) => e.preventDefault()}
+                        {...props}
+                        style={{ margin: "15px" }}
+                      />
                     )}
                     label="End Date"
                     value={endValue}
                     inputFormat="DD/MM/YYYY hh:mm A"
                     onChange={(newValue) => {
-                      setEndValue(newValue.toISOString())
+                      console.log(newValue)
+                      if (newValue.toISOString()) {
+                        setEndValue(newValue.toISOString())
+                      } else {
+                        setEndValue(newValue)
+                      }
                       setEndDate(newValue)
                     }}
                   />
@@ -659,8 +677,6 @@ const Assignments = () => {
           </Modal>
         </Box>
       )
-    }
   }
 }
-
 export default Assignments

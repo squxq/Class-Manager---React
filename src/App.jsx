@@ -11,7 +11,6 @@ const Calendar = lazy(() => import("./pages/calendar"))
 const Classes = lazy(() => import("./pages/classes"))
 const Summaries = lazy(() => import("./pages/summaries"))
 const Assignments = lazy(() => import("./pages/assignments"))
-const Assignment = lazy(() => import("./pages/assignments/assignment"))
 
 const App = () => {
   return (
