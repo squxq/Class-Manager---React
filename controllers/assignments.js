@@ -3,7 +3,7 @@ const User = require(`../models/User`)
 const Class = require(`../models/Class`)
 const Assignments = require(`../models/Assignments`)
 const mongoose = require(`mongoose`)
-const { Assignment } = require("@mui/icons-material")
+const Answer = require(`../models/Answer`)
 
 const getAllAssignments = (req, res) => {
   try {
@@ -337,10 +337,114 @@ const deleteAssignment = (req, res) => {
   }
 }
 
+const getAllAnswers = (req, res) => {
+  try {
+    const { id: teacherId } = req.params
+    const { id: assignmentId } = req.query
+    User.findById(teacherId, (err, user) => {
+      if (err) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: err.message,
+        })
+      }
+
+      Assignments.findById(assignmentId, (err, assignment) => {
+        if (err) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: err.message,
+          })
+        }
+
+        Class.find({ _id: { $in: assignment.classes } }, (err, docs) => {
+          if (err) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+              success: false,
+              err: err.message,
+            })
+          }
+
+          const studentsIds = Array.from(
+            new Set(
+              [].concat(
+                ...docs.map((doc) => {
+                  const docStudents = doc.students.map((student) => {
+                    return student._id
+                  })
+                  return docStudents
+                })
+              )
+            )
+          )
+
+          User.find({ _id: { $in: studentsIds } }, (err, students) => {
+            if (err) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: err.message,
+              })
+            }
+
+            Answer.find(
+              { assignment: assignmentId },
+              null,
+              { sort: { createdAt: -1 } },
+              (err, answers) => {
+                if (err) {
+                  return res.status(StatusCodes.NOT_FOUND).json({
+                    success: false,
+                    err: err.message,
+                  })
+                }
+                const studentsTurnedIn = answers.map((ans) => {
+                  return ans.student
+                })
+
+                const tableItems = students.map((student, index) => {
+                  if (studentsTurnedIn.includes(student._id)) {
+                    return {
+                      id: student._id,
+                      name: `${student.firstname} ${student.lastname}`,
+                      email: student.email,
+                      status: "Turned in",
+                      grade: answers[index].grade,
+                      feedback: answers[index].feedback,
+                      deliveryDate: answers[index].deliveryDate,
+                    }
+                  } else {
+                    return {
+                      id: student._id,
+                      name: `${student.firstname} ${student.lastname}`,
+                      email: student.email,
+                      status: "Not turned in",
+                    }
+                  }
+                })
+
+                return res.status(StatusCodes.OK).json({
+                  success: true,
+                  answers: tableItems,
+                })
+              }
+            )
+          })
+        })
+      })
+    })
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
 module.exports = {
   getAllAssignments,
   createAssignment,
   getSingleAssignment,
   patchAssignment,
   deleteAssignment,
+  getAllAnswers,
 }

@@ -18,9 +18,10 @@ import {
   MenuItem,
   Checkbox,
   ListItemText,
+  IconButton,
 } from "@mui/material"
 import { useParams, useSearchParams } from "react-router-dom"
-import { KeyboardArrowLeft } from "@mui/icons-material"
+import { KeyboardArrowLeft, Edit } from "@mui/icons-material"
 import { styled } from "@mui/material/styles"
 import axios from "axios"
 import Modal from "react-modal"
@@ -28,8 +29,52 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import dayjs from "dayjs"
+import {
+  DataGrid,
+  GridToolbarContainer,
+  GridToolbarExport,
+} from "@mui/x-data-grid"
 
 Modal.setAppElement("#root")
+
+const DataGridCustomToolbar = ({ createLabelValue, handleBackClick }) => {
+  return (
+    <GridToolbarContainer>
+      <Box
+        width="100%"
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Box>
+          <Button
+            sx={{
+              color: "#f6f6f6",
+              "&:hover": {
+                backgroundColor: "transparent",
+                color: "#3AAFA9",
+              },
+            }}
+            onClick={handleBackClick}
+          >
+            <KeyboardArrowLeft />
+            <Typography variant="h6">Back</Typography>
+          </Button>
+          <GridToolbarExport
+            sx={{
+              color: "#3AAFA9",
+              fontSize: "1.25rem",
+              marginLeft: "1rem",
+            }}
+            printOptions={{ disableToolbarButton: true }}
+          />
+        </Box>
+      </Box>
+    </GridToolbarContainer>
+  )
+}
 
 const customStyles = {
   content: {
@@ -60,10 +105,9 @@ const CssTextField = styled(TextField)({
   },
 })
 
-const CustomCard = ({ text, id, customClickEvent }) => {
+const CustomCard = ({ text, id, customClickEvent, cardActionEvent }) => {
   return (
     <Card
-      onClick={() => customClickEvent(id)}
       key={id}
       sx={{
         m: "1rem",
@@ -76,7 +120,14 @@ const CustomCard = ({ text, id, customClickEvent }) => {
         },
       }}
     >
-      <CardActionArea>
+      <CardActionArea
+        onClick={() => cardActionEvent(id)}
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+        }}
+      >
         <CardContent>
           <Typography
             sx={{
@@ -89,6 +140,20 @@ const CustomCard = ({ text, id, customClickEvent }) => {
             {text}
           </Typography>
         </CardContent>
+        <IconButton
+          sx={{
+            marginRight: "2rem",
+            height: "3rem",
+            width: "3rem",
+            color: "#f6f6f6",
+            "&:hover": {
+              backgroundColor: "rgba(58, 175, 169, 0.4)",
+            },
+          }}
+          onClick={(event) => customClickEvent(event, id)}
+        >
+          <Edit />
+        </IconButton>
       </CardActionArea>
     </Card>
   )
@@ -131,6 +196,7 @@ const Assignments = () => {
   const [assignments, setAssignments] = useState([])
 
   useEffect(() => {
+    setSearchParams({})
     const fetchData = async () => {
       await axios({
         method: "get",
@@ -151,7 +217,9 @@ const Assignments = () => {
     fetchData()
   }, [])
 
-  const handleCardClick = async (id) => {
+  const handleCardClick = async (event, id) => {
+    event.stopPropagation()
+    event.preventDefault()
     setSearchParams({
       id,
     })
@@ -300,6 +368,30 @@ const Assignments = () => {
       .catch((err) => console.log(err))
   }
 
+  const [answersData, setAnswersData] = useState(false)
+  const [answers, setAnswers] = useState([])
+
+  const handleCardActionClick = async (id) => {
+    setSearchParams({
+      id,
+    })
+    await axios({
+      method: "get",
+      url: `http://localhost:5000/answers/${userId}`,
+      params: {
+        id,
+      },
+    })
+      .then((res) => {
+        console.log(res)
+        setAnswers(res.data.answers)
+        setAnswersData(res.data.success)
+        setCreateLabelValue("Answers")
+        setValue("Create")
+      })
+      .catch((err) => console.log(err))
+  }
+
   switch (assignmentsData) {
     case false:
       return <div>Something went wrong please try again later...</div>
@@ -370,6 +462,7 @@ const Assignments = () => {
                     key={assignment._id}
                     id={assignment._id}
                     customClickEvent={handleCardClick}
+                    cardActionEvent={handleCardActionClick}
                   />
                 )
               })}
@@ -377,37 +470,41 @@ const Assignments = () => {
           ) : (
             <Box height="72.9vh">
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Button
-                  sx={{
-                    color: "#f6f6f6",
-                    "&:hover": {
-                      backgroundColor: "transparent",
-                      color: "#3AAFA9",
-                    },
-                  }}
-                  onClick={handleBackClick}
-                >
-                  <KeyboardArrowLeft />
-                  <Typography variant="h6">Back</Typography>
-                </Button>
-                <Box>
+                {createLabelValue !== "Answers" && (
                   <Button
-                    id={createLabelValue}
-                    variant="outlined"
-                    onClick={handleCreateAssignmentClick}
                     sx={{
-                      border: "1px solid #f6f6f6",
                       color: "#f6f6f6",
-                      boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
                       "&:hover": {
                         backgroundColor: "transparent",
-                        border: "1px solid #3AAFA9",
-                        boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
+                        color: "#3AAFA9",
                       },
                     }}
+                    onClick={handleBackClick}
                   >
-                    <Typography variant="h5">{createLabelValue}</Typography>
+                    <KeyboardArrowLeft />
+                    <Typography variant="h6">Back</Typography>
                   </Button>
+                )}
+                <Box>
+                  {createLabelValue !== "Answers" && (
+                    <Button
+                      id={createLabelValue}
+                      variant="outlined"
+                      onClick={handleCreateAssignmentClick}
+                      sx={{
+                        border: "1px solid #f6f6f6",
+                        color: "#f6f6f6",
+                        boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
+                        "&:hover": {
+                          backgroundColor: "transparent",
+                          border: "1px solid #3AAFA9",
+                          boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
+                        },
+                      }}
+                    >
+                      <Typography variant="h5">{createLabelValue}</Typography>
+                    </Button>
+                  )}
                   {createLabelValue === "Edit" ? (
                     <Button
                       variant="outlined"
@@ -431,311 +528,131 @@ const Assignments = () => {
                   )}
                 </Box>
               </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  color: "#f6f6f6",
-                }}
-              >
+              {createLabelValue !== "Answers" ? (
                 <Box
                   sx={{
-                    marginTop: "2rem",
-                    marginLeft: "2rem",
-                    width: "50%",
                     display: "flex",
-                    flexDirection: "column",
+                    flexDirection: "row",
+                    color: "#f6f6f6",
                   }}
                 >
-                  <FormControl>
-                    <Typography
-                      placeholder="Please type your assignment title..."
-                      variant="standard"
-                      sx={{
-                        marginLeft: "2rem",
-                        fontFamily: "Poppins",
-                        fontSize: "16px",
-                        fontWeight: "550",
-                      }}
-                    >
-                      Assignment Name
-                    </Typography>
-                    <CssTextField
-                      placeholder="Please type your assignment title..."
-                      variant="standard"
-                      multiline={true}
-                      value={assignmentName}
-                      onChange={(e) => setAssignmentName(e.target.value)}
-                      sx={{
-                        width: "80% !important",
-                        marginLeft: "1rem",
-                        marginTop: "0.5rem",
-                        marginBottom: "2rem",
-                        "& .MuiInputBase-input": {
-                          fontFamily: "Poppins",
-                          fontSize: "32px",
-                        },
-                      }}
-                    />
-                    <Typography
-                      variant="standard"
-                      sx={{
-                        marginTop: "2rem",
-                        marginLeft: "2rem",
-                        fontFamily: "Poppins",
-                        fontSize: "16px",
-                        fontWeight: "550",
-                      }}
-                    >
-                      Calendar
-                    </Typography>
-                    <CssTextField
-                      placeholder="Please select your assignment start date..."
-                      variant="standard"
-                      multiline={true}
-                      value={
-                        startValue.indexOf("T") > 1
-                          ? `${startValue.split("T")[0]} - ${
-                              startValue.split("T")[1].split(".")[0]
-                            }`
-                          : startValue
-                      }
-                      onClick={openModal}
-                      sx={{
-                        width: "50% !important",
-                        margin: "0.5rem 0rem 0.5rem 1rem",
-                        "& .MuiInputBase-input": {
-                          fontFamily: "Poppins",
-                          fontSize: "16px",
-                        },
-                      }}
-                    />
-                    <CssTextField
-                      placeholder="Please select your assignment end date..."
-                      variant="standard"
-                      multiline={true}
-                      m="0.5rem"
-                      value={
-                        endValue.indexOf("T") > 1
-                          ? `${endValue.split("T")[0]} - ${
-                              endValue.split("T")[1].split(".")[0]
-                            }`
-                          : endValue
-                      }
-                      onClick={openModal}
-                      sx={{
-                        width: "50% !important",
-                        margin: "0.5rem 0rem 2rem 1rem",
-                        "& .MuiInputBase-input": {
-                          fontFamily: "Poppins",
-                          fontSize: "16px",
-                        },
-                      }}
-                    />
-                    <Typography
-                      variant="standard"
-                      sx={{
-                        marginTop: "2rem",
-                        marginLeft: "2rem",
-                        fontFamily: "Poppins",
-                        fontSize: "16px",
-                        fontWeight: "550",
-                      }}
-                    >
-                      Assignment Instructions
-                    </Typography>
-                    <CssTextField
-                      placeholder="Please type your assignment instructions..."
-                      variant="standard"
-                      multiline={true}
-                      maxRows={5}
-                      value={assignmentInstructions}
-                      onChange={(e) => {
-                        setAssignmentInstructions(e.target.value)
-                      }}
-                      sx={{
-                        width: "90% !important",
-                        margin: "0.5rem 0rem 0.5rem 1rem",
-                        "& .MuiInputBase-input": {
-                          fontFamily: "Poppins",
-                          fontSize: "25px",
-                        },
-                      }}
-                    />
-                  </FormControl>
-                  <Box>
-                    <FormControl sx={{ margin: "0.5rem 0rem 2rem 0rem" }}>
+                  <Box
+                    sx={{
+                      marginTop: "2rem",
+                      marginLeft: "2rem",
+                      width: "50%",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <FormControl>
                       <Typography
+                        placeholder="Please type your assignment title..."
                         variant="standard"
                         sx={{
-                          marginTop: "2rem",
                           marginLeft: "2rem",
                           fontFamily: "Poppins",
                           fontSize: "16px",
                           fontWeight: "550",
                         }}
                       >
-                        Assignment Status
-                      </Typography>
-                      <RadioGroup
-                        defaultValue={assignmentStatus}
-                        row
-                        aria-labelledby="demo-row-radio-buttons-group-label"
-                        name="row-radio-buttons-group"
-                        sx={{ margin: "0.5rem 1rem 0rem 1rem" }}
-                      >
-                        <FormControlLabel
-                          value="Completed"
-                          control={
-                            <Radio
-                              sx={{
-                                color: "#f6f6f6",
-                                "& .MuiSvgIcon-root": {
-                                  fontFamily: "Poppins",
-                                  fontSize: "25px",
-                                },
-                                "&.Mui-checked": {
-                                  color: "#3AAFA9",
-                                },
-                              }}
-                            />
-                          }
-                          label="Completed"
-                          onClick={() => setAssignmentStatus("Completed")}
-                        />
-                        <FormControlLabel
-                          value="Pending"
-                          control={
-                            <Radio
-                              sx={{
-                                marginLeft: "1rem",
-                                color: "#f6f6f6",
-                                "& .MuiSvgIcon-root": {
-                                  fontSize: 28,
-                                },
-                                "&.Mui-checked": {
-                                  color: "#3AAFA9",
-                                },
-                              }}
-                            />
-                          }
-                          label="Pending"
-                          onClick={() => setAssignmentStatus("Pending")}
-                        />
-                      </RadioGroup>
-                    </FormControl>
-                  </Box>
-                </Box>
-                <Box sx={{ marginTop: "2rem", marginLeft: "2rem" }}>
-                  <Box sx={{ display: "flex", flexDirection: "column" }}>
-                    <Typography
-                      variant="standard"
-                      sx={{
-                        marginLeft: "2rem",
-                        fontFamily: "Poppins",
-                        fontSize: "16px",
-                        fontWeight: "550",
-                      }}
-                    >
-                      Assignment Classes
-                    </Typography>
-                    <FormControl sx={{ width: "650px" }}>
-                      <Select
-                        multiple
-                        value={className}
-                        onChange={handleSelectChange}
-                        variant="standard"
-                        placeholder="Please select at least a class for this assignment."
-                        sx={{
-                          margin: "0.5rem 0rem 2rem 1rem",
-                          "& .MuiInputBase-root": {
-                            width: "90%",
-                          },
-                          "& .MuiSvgIcon-root": {
-                            color: "#f6f6f6",
-                          },
-                          "&:before": {
-                            borderBottom: "2px solid #f6f6f6",
-                          },
-                          "&:after": {
-                            borderBottom: "2px solid #3AAFA9",
-                          },
-                          "& .MuiSelect-select": {
-                            width: "90%",
-                          },
-                        }}
-                        renderValue={(selected) => {
-                          return (
-                            <Box
-                              sx={{
-                                margin: "5px",
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: 1,
-                              }}
-                            >
-                              {selected.map((value) => (
-                                <Chip
-                                  sx={{
-                                    fontFamily: "Poppins",
-                                    fontSize: "25px",
-                                    background: "transparent",
-                                    color: "#f6f6f6",
-                                    boxShadow:
-                                      "0 1px 2px rgba(58, 175, 169, 0.7)",
-                                    "&:hover": {
-                                      cursor: "pointer",
-                                      boxShadow:
-                                        "0 5px 10px rgba(58, 175, 169, 0.4)",
-                                    },
-                                  }}
-                                  key={value}
-                                  label={value}
-                                />
-                              ))}
-                            </Box>
-                          )
-                        }}
-                        MenuProps={{
-                          PaperProps: {
-                            style: {
-                              maxHeight: 48 * 4.5 + 8,
-                              width: 250,
-                            },
-                          },
-                        }}
-                      >
-                        {classes.map((sClass) => (
-                          <MenuItem
-                            key={sClass._id}
-                            id={sClass._id}
-                            value={sClass.name}
-                          >
-                            <Checkbox
-                              checked={className.indexOf(sClass.name) > -1}
-                            />
-                            <ListItemText primary={sClass.name} />
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      <Typography
-                        variant="standard"
-                        sx={{
-                          marginTop: "2rem",
-                          marginLeft: "2rem",
-                          fontFamily: "Poppins",
-                          fontSize: "16px",
-                          fontWeight: "550",
-                        }}
-                      >
-                        Reference Work
+                        Assignment Name
                       </Typography>
                       <CssTextField
-                        placeholder="Please select some reference work..."
+                        placeholder="Please type your assignment title..."
                         variant="standard"
                         multiline={true}
+                        value={assignmentName}
+                        onChange={(e) => setAssignmentName(e.target.value)}
                         sx={{
-                          width: "634px",
+                          width: "80% !important",
+                          marginLeft: "1rem",
+                          marginTop: "0.5rem",
+                          marginBottom: "2rem",
+                          "& .MuiInputBase-input": {
+                            fontFamily: "Poppins",
+                            fontSize: "32px",
+                          },
+                        }}
+                      />
+                      <Typography
+                        variant="standard"
+                        sx={{
+                          marginTop: "2rem",
+                          marginLeft: "2rem",
+                          fontFamily: "Poppins",
+                          fontSize: "16px",
+                          fontWeight: "550",
+                        }}
+                      >
+                        Calendar
+                      </Typography>
+                      <CssTextField
+                        placeholder="Please select your assignment start date..."
+                        variant="standard"
+                        multiline={true}
+                        value={
+                          startValue.indexOf("T") > 1
+                            ? `${startValue.split("T")[0]} - ${
+                                startValue.split("T")[1].split(".")[0]
+                              }`
+                            : startValue
+                        }
+                        onClick={openModal}
+                        sx={{
+                          width: "50% !important",
+                          margin: "0.5rem 0rem 0.5rem 1rem",
+                          "& .MuiInputBase-input": {
+                            fontFamily: "Poppins",
+                            fontSize: "16px",
+                          },
+                        }}
+                      />
+                      <CssTextField
+                        placeholder="Please select your assignment end date..."
+                        variant="standard"
+                        multiline={true}
+                        m="0.5rem"
+                        value={
+                          endValue.indexOf("T") > 1
+                            ? `${endValue.split("T")[0]} - ${
+                                endValue.split("T")[1].split(".")[0]
+                              }`
+                            : endValue
+                        }
+                        onClick={openModal}
+                        sx={{
+                          width: "50% !important",
+                          margin: "0.5rem 0rem 2rem 1rem",
+                          "& .MuiInputBase-input": {
+                            fontFamily: "Poppins",
+                            fontSize: "16px",
+                          },
+                        }}
+                      />
+                      <Typography
+                        variant="standard"
+                        sx={{
+                          marginTop: "2rem",
+                          marginLeft: "2rem",
+                          fontFamily: "Poppins",
+                          fontSize: "16px",
+                          fontWeight: "550",
+                        }}
+                      >
+                        Assignment Instructions
+                      </Typography>
+                      <CssTextField
+                        placeholder="Please type your assignment instructions..."
+                        variant="standard"
+                        multiline={true}
+                        maxRows={5}
+                        value={assignmentInstructions}
+                        onChange={(e) => {
+                          setAssignmentInstructions(e.target.value)
+                        }}
+                        sx={{
+                          width: "90% !important",
                           margin: "0.5rem 0rem 0.5rem 1rem",
                           "& .MuiInputBase-input": {
                             fontFamily: "Poppins",
@@ -744,9 +661,300 @@ const Assignments = () => {
                         }}
                       />
                     </FormControl>
+                    <Box>
+                      <FormControl sx={{ margin: "0.5rem 0rem 2rem 0rem" }}>
+                        <Typography
+                          variant="standard"
+                          sx={{
+                            marginTop: "2rem",
+                            marginLeft: "2rem",
+                            fontFamily: "Poppins",
+                            fontSize: "16px",
+                            fontWeight: "550",
+                          }}
+                        >
+                          Assignment Status
+                        </Typography>
+                        <RadioGroup
+                          defaultValue={assignmentStatus}
+                          row
+                          aria-labelledby="demo-row-radio-buttons-group-label"
+                          name="row-radio-buttons-group"
+                          sx={{ margin: "0.5rem 1rem 0rem 1rem" }}
+                        >
+                          <FormControlLabel
+                            value="Completed"
+                            control={
+                              <Radio
+                                sx={{
+                                  color: "#f6f6f6",
+                                  "& .MuiSvgIcon-root": {
+                                    fontFamily: "Poppins",
+                                    fontSize: "25px",
+                                  },
+                                  "&.Mui-checked": {
+                                    color: "#3AAFA9",
+                                  },
+                                }}
+                              />
+                            }
+                            label="Completed"
+                            onClick={() => setAssignmentStatus("Completed")}
+                          />
+                          <FormControlLabel
+                            value="Pending"
+                            control={
+                              <Radio
+                                sx={{
+                                  marginLeft: "1rem",
+                                  color: "#f6f6f6",
+                                  "& .MuiSvgIcon-root": {
+                                    fontSize: 28,
+                                  },
+                                  "&.Mui-checked": {
+                                    color: "#3AAFA9",
+                                  },
+                                }}
+                              />
+                            }
+                            label="Pending"
+                            onClick={() => setAssignmentStatus("Pending")}
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </Box>
+                  </Box>
+                  <Box sx={{ marginTop: "2rem", marginLeft: "2rem" }}>
+                    <Box sx={{ display: "flex", flexDirection: "column" }}>
+                      <Typography
+                        variant="standard"
+                        sx={{
+                          marginLeft: "2rem",
+                          fontFamily: "Poppins",
+                          fontSize: "16px",
+                          fontWeight: "550",
+                        }}
+                      >
+                        Assignment Classes
+                      </Typography>
+                      <FormControl sx={{ width: "650px" }}>
+                        <Select
+                          multiple
+                          value={className}
+                          onChange={handleSelectChange}
+                          variant="standard"
+                          placeholder="Please select at least a class for this assignment."
+                          sx={{
+                            margin: "0.5rem 0rem 2rem 1rem",
+                            "& .MuiInputBase-root": {
+                              width: "90%",
+                            },
+                            "& .MuiSvgIcon-root": {
+                              color: "#f6f6f6",
+                            },
+                            "&:before": {
+                              borderBottom: "2px solid #f6f6f6",
+                            },
+                            "&:after": {
+                              borderBottom: "2px solid #3AAFA9",
+                            },
+                            "& .MuiSelect-select": {
+                              width: "90%",
+                            },
+                          }}
+                          renderValue={(selected) => {
+                            return (
+                              <Box
+                                sx={{
+                                  margin: "5px",
+                                  display: "flex",
+                                  flexWrap: "wrap",
+                                  gap: 1,
+                                }}
+                              >
+                                {selected.map((value) => (
+                                  <Chip
+                                    sx={{
+                                      fontFamily: "Poppins",
+                                      fontSize: "25px",
+                                      background: "transparent",
+                                      color: "#f6f6f6",
+                                      boxShadow:
+                                        "0 1px 2px rgba(58, 175, 169, 0.7)",
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        boxShadow:
+                                          "0 5px 10px rgba(58, 175, 169, 0.4)",
+                                      },
+                                    }}
+                                    key={value}
+                                    label={value}
+                                  />
+                                ))}
+                              </Box>
+                            )
+                          }}
+                          MenuProps={{
+                            PaperProps: {
+                              style: {
+                                maxHeight: 48 * 4.5 + 8,
+                                width: 250,
+                              },
+                            },
+                          }}
+                        >
+                          {classes.map((sClass) => (
+                            <MenuItem
+                              key={sClass._id}
+                              id={sClass._id}
+                              value={sClass.name}
+                            >
+                              <Checkbox
+                                checked={className.indexOf(sClass.name) > -1}
+                              />
+                              <ListItemText primary={sClass.name} />
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        <Typography
+                          variant="standard"
+                          sx={{
+                            marginTop: "2rem",
+                            marginLeft: "2rem",
+                            fontFamily: "Poppins",
+                            fontSize: "16px",
+                            fontWeight: "550",
+                          }}
+                        >
+                          Reference Work
+                        </Typography>
+                        <CssTextField
+                          placeholder="Please select some reference work..."
+                          variant="standard"
+                          multiline={true}
+                          sx={{
+                            width: "634px",
+                            margin: "0.5rem 0rem 0.5rem 1rem",
+                            "& .MuiInputBase-input": {
+                              fontFamily: "Poppins",
+                              fontSize: "25px",
+                            },
+                          }}
+                        />
+                      </FormControl>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
+              ) : (
+                <Box
+                  height="74vh"
+                  sx={{
+                    "& .MuiDataGrid-root": {
+                      border: "none",
+                      fontFamily: "Poppins",
+                    },
+                    "& .MuiDataGrid-cell": {
+                      border: "none !important",
+                    },
+                    "& .Mui-selected": {
+                      border: "none !important",
+                      backgroundColor: "rgb(58, 175, 169, 0.2) !important",
+                    },
+                    "& .MuiDataGrid-columnHeaders": {
+                      backgroundColor: "#171923",
+                      color: "#f6f6f6",
+                      borderBottom: "none",
+                    },
+                    "& .MuiDataGrid-virtualScroller": {
+                      backgroundColor: "#171923",
+                    },
+                    "& .MuiDataGrid-Containeer": {
+                      backgroundColor: "#f6f6f6",
+                      color: "#f6f6f6",
+                      borderTop: "none",
+                    },
+                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                      color: `#f6f6f6`,
+                    },
+                    ".MuiButtonBase-root": {
+                      color: "#f6f6f6",
+                    },
+                    ".MuiToolbar-root": {
+                      color: "#f6f6f6",
+                    },
+                    ".MuiSvgIcon-root": {
+                      color: "#f6f6f6",
+                    },
+                    ".MuiDataGrid-columnHeaderTitleContainer": {
+                      borderColor: "#f6f6f6 !important",
+                    },
+                    ".MuiDataGrid-row": {
+                      color: "#f6f6f6 !important",
+                      fontSize: "0.9rem",
+                    },
+                    ".MuiDataGrid-selectedRowCount": {
+                      color: "#171923 !important",
+                      cursor: "default",
+                    },
+                    ".MuiTablePagination-actions": {
+                      display: "none",
+                    },
+                  }}
+                >
+                  <DataGrid
+                    getRowId={(row) => row.id}
+                    rows={answers || []}
+                    columns={[
+                      {
+                        field: "name",
+                        headerName: "Name",
+                        flex: 0.5,
+                      },
+                      {
+                        field: "email",
+                        headerName: "Email",
+                        flex: 0.6,
+                      },
+                      {
+                        field: "status",
+                        headerName: "Status",
+                        flex: 0.4,
+                      },
+                      {
+                        field: "grade",
+                        headerName: "Grade / 200",
+                        flex: 0.5,
+                      },
+                      {
+                        field: "feedback",
+                        headerName: "Feedback",
+                        flex: 1,
+                      },
+                      {
+                        field: "deliveryDate",
+                        headerName: "Delivery Date",
+                        flex: 0.5,
+                      },
+                    ]}
+                    // rowCount={rowCount || 0}
+                    rowsPerPage={-1}
+                    rowsPerPageOptions={[]}
+                    sortingOrder={["desc", "asc"]}
+                    initialState={{
+                      sorting: {
+                        sortModel: [{ field: "lastName", sort: "asc" }],
+                      },
+                    }}
+                    components={{ Toolbar: DataGridCustomToolbar }}
+                    componentsProps={{
+                      Toolbar: {
+                        createLabelValue,
+                        handleBackClick,
+                      },
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
           )}
           <Modal
