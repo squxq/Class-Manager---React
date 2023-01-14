@@ -3,11 +3,11 @@ const User = require(`../models/User`)
 const Class = require(`../models/Class`)
 const Assignments = require(`../models/Assignments`)
 const mongoose = require(`mongoose`)
+const { Assignment } = require("@mui/icons-material")
 
 const getAllAssignments = (req, res) => {
   try {
     const { id: teacherId } = req.params
-    const { cardId: assignmentId } = req.query
     const { status } = req.query
     User.findById(teacherId, (err, user) => {
       if (err) {
@@ -33,23 +33,30 @@ const getAllAssignments = (req, res) => {
         })
 
         if (status === "Assigned") {
-          Assignments.find({ teacher: user._id }, (err, docs) => {
-            if (err) {
-              return res.status(StatusCodes.NOT_FOUND).json({
-                success: false,
-                err: err.message,
+          Assignments.find(
+            { teacher: user._id },
+            null,
+            { sort: { updatedAt: -1 } },
+            (err, docs) => {
+              if (err) {
+                return res.status(StatusCodes.NOT_FOUND).json({
+                  success: false,
+                  err: err.message,
+                })
+              }
+
+              res.status(StatusCodes.OK).json({
+                success: true,
+                classes: readyToGoClasses,
+                assignments: docs,
               })
             }
-
-            res.status(StatusCodes.OK).json({
-              success: true,
-              classes: readyToGoClasses,
-              assignments: docs,
-            })
-          })
+          )
         } else {
           Assignments.find(
             { teacher: user._id, status: status },
+            null,
+            { sort: { updatedAt: -1 } },
             (err, docs) => {
               if (err) {
                 return res.status(StatusCodes.NOT_FOUND).json({
@@ -147,7 +154,193 @@ const createAssignment = async (req, res) => {
   }
 }
 
+const getSingleAssignment = async (req, res) => {
+  try {
+    const { id: teacherId } = req.params
+    const { cardId: assignmentId } = req.query
+    User.findById(teacherId, (err, user) => {
+      if (err) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: err.message,
+        })
+      }
+      Assignments.findById(assignmentId, (err, assignment) => {
+        if (err) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: err.message,
+          })
+        }
+
+        Class.find(
+          {
+            _id: { $in: assignment.classes },
+          },
+          (err, docs) => {
+            if (err) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: err.message,
+              })
+            }
+            return res.status(StatusCodes.OK).json({
+              success: true,
+              assignment,
+              classes: docs.map((doc) => doc.name),
+            })
+          }
+        )
+      })
+    })
+  } catch (err) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
+const patchAssignment = async (req, res) => {
+  try {
+    const { id: teacherId } = req.params
+    const {
+      assignmentName,
+      assignmentStartDate,
+      assignmentEndDate,
+      assignmentInstructions,
+      assignmentStatus,
+      classes,
+    } = req.body
+    const { id: assignmentId } = req.query
+    User.findById(teacherId, (err, user) => {
+      if (err) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: err.message,
+        })
+      }
+
+      Class.find(
+        {
+          _id: {
+            $in: classes.map((singleClass) => {
+              return mongoose.Types.ObjectId(singleClass.id)
+            }),
+          },
+        },
+        (err, docs) => {
+          if (err) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+              success: false,
+              err: err.message,
+            })
+          }
+
+          Assignments.findOneAndUpdate(
+            { _id: assignmentId },
+            {
+              name: assignmentName,
+              start: assignmentStartDate,
+              end: assignmentEndDate,
+              instructions: assignmentInstructions,
+              status: assignmentStatus,
+              classes: docs.map((doc) => {
+                return doc._id
+              }),
+            },
+            { new: true },
+            (err, assignment) => {
+              if (err) {
+                return res.status(StatusCodes).json({
+                  success: false,
+                  err: err.message,
+                })
+              }
+
+              Assignments.find(
+                { teacher: user._id },
+                null,
+                { sort: { updatedAt: -1 } },
+                (err, docs) => {
+                  if (err) {
+                    return res.status(StatusCodes.NOT_FOUND).json({
+                      success: false,
+                      err: err.message,
+                    })
+                  }
+
+                  return res.status(StatusCodes.OK).json({
+                    success: true,
+                    assignments: docs,
+                  })
+                }
+              )
+            }
+          )
+        }
+      )
+    })
+  } catch (err) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
+const deleteAssignment = (req, res) => {
+  try {
+    const { id: teacherId } = req.params
+    const { id: assignmentId } = req.query
+    User.findById(teacherId, (err, user) => {
+      if (err) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: err.message,
+        })
+      }
+
+      Assignments.findOneAndDelete({ _id: assignmentId }, (err, assignment) => {
+        if (err) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: err.message,
+          })
+        }
+
+        Assignments.find(
+          { teacher: user._id },
+          null,
+          { sort: { updatedAt: -1 } },
+          (err, docs) => {
+            if (err) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: err.message,
+              })
+            }
+
+            return res.status(StatusCodes.OK).json({
+              success: true,
+              assignments: docs,
+            })
+          }
+        )
+      })
+    })
+  } catch (err) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
 module.exports = {
   getAllAssignments,
   createAssignment,
+  getSingleAssignment,
+  patchAssignment,
+  deleteAssignment,
 }

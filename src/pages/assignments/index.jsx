@@ -108,6 +108,14 @@ const Assignments = () => {
         .then((res) => {
           console.log(res)
           setAssignments(res.data.assignments)
+          setCreateLabelValue("Create")
+          setAssignmentName("")
+          setAssignmentInstructions("")
+          setAssignmentStatus("Pending")
+          setClassName([])
+          setStartDate({})
+          setEndDate({})
+          setSearchParams({})
         })
         .catch((err) => console.log(err))
     }
@@ -116,6 +124,7 @@ const Assignments = () => {
 
   const { id: userId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
+  const [createLabelValue, setCreateLabelValue] = useState("Create")
 
   const [assignmentsData, setAssignmentsData] = useState(false)
   const [classes, setClasses] = useState([])
@@ -148,13 +157,27 @@ const Assignments = () => {
     })
     await axios({
       method: "get",
-      url: `http://localhost:5000/assignments/${userId}`,
+      url: `http://localhost:5000/assignment/${userId}`,
       params: {
         cardId: id,
       },
     })
       .then((res) => {
         console.log(res)
+        const { name, start, end, instructions, status } = res.data.assignment
+        setAssignmentName(name)
+        console.log(start, end)
+        setStartValue(
+          `${start.split("T")[0]} - ${start.split("T")[1].split(".")[0]}`
+        )
+        setEndValue(`${end.split("T")[0]} - ${end.split("T")[1].split(".")[0]}`)
+        setStartDate(start)
+        setEndDate(end)
+        setAssignmentInstructions(instructions)
+        setAssignmentStatus(status)
+        setClassName(res.data.classes)
+        setCreateLabelValue("Edit")
+        setValue("Create")
       })
       .catch((err) => console.log(err))
   }
@@ -179,30 +202,102 @@ const Assignments = () => {
   const [startDate, setStartDate] = useState({})
   const [endDate, setEndDate] = useState({})
 
-  const [startValue, setStartValue] = useState(dayjs(new Date().toISOString()))
-  const [endValue, setEndValue] = useState(
-    dayjs(new Date(new Date().setHours(new Date().getDate() + 1)).toISOString())
-  )
+  const [startValue, setStartValue] = useState("")
+  const [endValue, setEndValue] = useState("")
 
   const [modalIsOpen, setModalIsOpen] = useState(false)
   const openModal = async () => {
     setModalIsOpen(true)
-    setStartValue(new Date().toISOString())
-    console.log(startValue)
-    setEndValue(
-      new Date(new Date().setHours(new Date().getHours() + 1)).toISOString()
-    )
+    // setStartValue(new Date().toISOString())
+    // console.log(startValue)
+    // setEndValue(
+    //   new Date(new Date().setHours(new Date().getHours() + 1)).toISOString()
+    // )
   }
   const closeModal = async () => {
     setModalIsOpen(false)
   }
 
-  const handleCreateAssignmentClick = async () => {
-    console.log(startDate, endDate)
+  const handleCreateAssignmentClick = async (e) => {
+    console.log(startDate, endDate, e.currentTarget)
+    if (e.currentTarget.id === "Create") {
+      await axios({
+        method: "post",
+        url: `http://localhost:5000/assignments/${userId}`,
+        data: {
+          assignmentName,
+          assignmentStartDate: startDate,
+          assignmentEndDate: endDate,
+          assignmentInstructions,
+          assignmentStatus,
+          classes: classes.filter((sClass) => {
+            for (let singleClassName of className) {
+              return sClass.name === singleClassName
+            }
+          }),
+        },
+      })
+        .then((res) => {
+          console.log(res)
+          setAssignments([...assignments, res.data.newAssignment])
+          setValue("Assigned")
+        })
+        .catch((err) => console.log(err))
+    } else if (e.currentTarget.id === "Edit") {
+      await axios({
+        method: "patch",
+        url: `http://localhost:5000/assignments/${userId}`,
+        data: {
+          assignmentName,
+          assignmentStartDate: startDate,
+          assignmentEndDate: endDate,
+          assignmentInstructions,
+          assignmentStatus,
+          classes: classes.filter((sClass) => {
+            for (let singleClassName of className) {
+              return sClass.name === singleClassName
+            }
+          }),
+        },
+        params: {
+          id: searchParams.get("id"),
+        },
+      })
+        .then((res) => {
+          console.log(res)
+          setAssignments(res.data.assignments)
+          setValue("Assigned")
+        })
+        .catch((err) => console.log(err))
+    }
   }
 
   const handleBackClick = () => {
     setValue("Assigned")
+    setCreateLabelValue("Create")
+    setAssignmentName("")
+    setAssignmentInstructions("")
+    setAssignmentStatus("Pending")
+    setClassName([])
+    setStartDate({})
+    setEndDate({})
+    setSearchParams({})
+  }
+
+  const handleDeleteAssignment = async () => {
+    await axios({
+      method: "delete",
+      url: `http://localhost:5000/assignments/${userId}`,
+      params: {
+        id: searchParams.get("id"),
+      },
+    })
+      .then((res) => {
+        setAssignments(res.data.assignments)
+        setSearchParams({})
+        setValue("Assigned")
+      })
+      .catch((err) => console.log(err))
   }
 
   switch (assignmentsData) {
@@ -220,9 +315,6 @@ const Assignments = () => {
                 "& .MuiButtonBase-root": {
                   color: "#f6f6f6",
                 },
-                "& .MuiButtonBase-root::selection": {
-                  color: "#3AAFA9",
-                },
                 "& .MuiButtonBase-root:hover": {
                   color: "#3AAFA9",
                 },
@@ -238,22 +330,24 @@ const Assignments = () => {
               >
                 <Tab
                   value="Assigned"
-                  label="Assigned"
+                  label={<span style={{ color: "#f6f6f6" }}>Assigned</span>}
                   sx={{ m: "0rem 0.5rem" }}
                 />
                 <Tab
                   value="Pending"
-                  label="Pending"
+                  label={<span style={{ color: "#f6f6f6" }}>Pending</span>}
                   sx={{ m: "0rem 0.5rem" }}
                 />
                 <Tab
                   value="Completed"
-                  label="Completed"
+                  label={<span style={{ color: "#f6f6f6" }}>Completed</span>}
                   sx={{ m: "0rem 0.5rem" }}
                 />
                 <Tab
                   value="Create"
-                  label="Create"
+                  label={
+                    <span style={{ color: "#f6f6f6" }}>{createLabelValue}</span>
+                  }
                   sx={{ m: "0rem 0.5rem" }}
                   onClick={() => {
                     setStartValue(new Date().toISOString())
@@ -296,22 +390,46 @@ const Assignments = () => {
                   <KeyboardArrowLeft />
                   <Typography variant="h6">Back</Typography>
                 </Button>
-                <Button
-                  variant="outlined"
-                  onClick={handleCreateAssignmentClick}
-                  sx={{
-                    border: "1px solid #f6f6f6",
-                    color: "#f6f6f6",
-                    boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
-                    "&:hover": {
-                      backgroundColor: "transparent",
-                      border: "1px solid #3AAFA9",
-                      boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
-                    },
-                  }}
-                >
-                  <Typography variant="h5">Create</Typography>
-                </Button>
+                <Box>
+                  <Button
+                    id={createLabelValue}
+                    variant="outlined"
+                    onClick={handleCreateAssignmentClick}
+                    sx={{
+                      border: "1px solid #f6f6f6",
+                      color: "#f6f6f6",
+                      boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
+                      "&:hover": {
+                        backgroundColor: "transparent",
+                        border: "1px solid #3AAFA9",
+                        boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
+                      },
+                    }}
+                  >
+                    <Typography variant="h5">{createLabelValue}</Typography>
+                  </Button>
+                  {createLabelValue === "Edit" ? (
+                    <Button
+                      variant="outlined"
+                      onClick={handleDeleteAssignment}
+                      sx={{
+                        marginLeft: "2rem",
+                        border: "1px solid #f6f6f6",
+                        color: "#f6f6f6",
+                        boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
+                        "&:hover": {
+                          backgroundColor: "transparent",
+                          border: "1px solid #3AAFA9",
+                          boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
+                        },
+                      }}
+                    >
+                      <Typography variant="h5">Delete</Typography>
+                    </Button>
+                  ) : (
+                    <></>
+                  )}
+                </Box>
               </Box>
               <Box
                 sx={{
@@ -375,9 +493,13 @@ const Assignments = () => {
                       placeholder="Please select your assignment start date..."
                       variant="standard"
                       multiline={true}
-                      value={`${startValue.split("T")[0]} - ${
-                        startValue.split("T")[1].split(".")[0]
-                      }`}
+                      value={
+                        startValue.indexOf("T") > 1
+                          ? `${startValue.split("T")[0]} - ${
+                              startValue.split("T")[1].split(".")[0]
+                            }`
+                          : startValue
+                      }
                       onClick={openModal}
                       sx={{
                         width: "50% !important",
@@ -393,9 +515,13 @@ const Assignments = () => {
                       variant="standard"
                       multiline={true}
                       m="0.5rem"
-                      value={`${endValue.split("T")[0]} - ${
-                        endValue.split("T")[1].split(".")[0]
-                      }`}
+                      value={
+                        endValue.indexOf("T") > 1
+                          ? `${endValue.split("T")[0]} - ${
+                              endValue.split("T")[1].split(".")[0]
+                            }`
+                          : endValue
+                      }
                       onClick={openModal}
                       sx={{
                         width: "50% !important",
@@ -422,6 +548,7 @@ const Assignments = () => {
                       placeholder="Please type your assignment instructions..."
                       variant="standard"
                       multiline={true}
+                      maxRows={5}
                       value={assignmentInstructions}
                       onChange={(e) => {
                         setAssignmentInstructions(e.target.value)
@@ -451,7 +578,7 @@ const Assignments = () => {
                         Assignment Status
                       </Typography>
                       <RadioGroup
-                        defaultValue={"Pending"}
+                        defaultValue={assignmentStatus}
                         row
                         aria-labelledby="demo-row-radio-buttons-group-label"
                         name="row-radio-buttons-group"
@@ -640,7 +767,9 @@ const Assignments = () => {
                       />
                     )}
                     label="Start Date"
-                    value={startValue}
+                    value={
+                      startValue.indexOf("T") === -1 ? startDate : startValue
+                    }
                     inputFormat="DD/MM/YYYY hh:mm A"
                     onChange={(newValue) => {
                       setStartValue(newValue.toISOString())
@@ -658,7 +787,7 @@ const Assignments = () => {
                       />
                     )}
                     label="End Date"
-                    value={endValue}
+                    value={endValue.indexOf("T") === -1 ? endDate : endValue}
                     inputFormat="DD/MM/YYYY hh:mm A"
                     onChange={(newValue) => {
                       console.log(newValue)
