@@ -30,7 +30,7 @@ import navItems from "./data"
 import profilePicture from "../../assets/pfp.jpg"
 import axios from "axios"
 
-const Sidebar = ({ drawerWidth, userId, userRole }) => {
+const Sidebar = ({ drawerWidth, userId, userRole, userName }) => {
   const navigate = useNavigate()
   const [active, setActive] = useState("")
   const { pathname } = useLocation()
@@ -149,7 +149,7 @@ const Sidebar = ({ drawerWidth, userId, userRole }) => {
             aria-labelledby="demo-positioned-button"
             anchorEl={anchorEl}
             open={open}
-            onClose={handleClose}
+            onClose={() => setAnchorEl(null)}
             anchorOrigin={{
               vertical: "top",
               horizontal: "left",
@@ -193,13 +193,13 @@ const Sidebar = ({ drawerWidth, userId, userRole }) => {
                   fontSize="0.85rem"
                   sx={{ color: "#f6f6f6", fontSize: "1rem" }}
                 >
-                  {/* {user.name} */} Francisco
+                  {userName.split(" ")[0]}
                 </Typography>
                 <Typography
                   fontSize="0.75rem"
                   sx={{ color: "#f6f6f6", fontSize: "0.85rem" }}
                 >
-                  {/* {user.occupation} */} Professor
+                  {userRole}
                 </Typography>
               </Box>
               <ArrowDropDown

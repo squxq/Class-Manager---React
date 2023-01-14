@@ -99,7 +99,9 @@ const LoginPage = () => {
                 <ForgotPasswordLink>Forgot Password?</ForgotPasswordLink>
                 <LoginLink to="/signup">Sign Up</LoginLink>
               </LinksDiv>
-              <button type="submit">Log In</button>
+              <button type="submit" style={{ marginTop: "3rem" }}>
+                Log In
+              </button>
             </FormDiv>
           </BoxDiv>
         </div>
