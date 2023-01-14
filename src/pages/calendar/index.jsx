@@ -13,7 +13,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker"
 import ModalDiv from "./EventModal"
 import { Button } from "@mui/material"
-import { useParams } from "react-router-dom"
+import { useOutletContext, useParams } from "react-router-dom"
 
 const customStyles = {
   content: {
@@ -31,6 +31,8 @@ const customStyles = {
 Modal.setAppElement("#root")
 
 const Calendar = () => {
+  const { userRole } = useOutletContext()
+
   const [calendarData, setCalendarData] = useState(false)
   const [events, setEvents] = useState([]) // Important for the backend
 
@@ -172,7 +174,7 @@ const Calendar = () => {
             eventClick={(info) => handleEvent(info)}
             plugins={[dayGridPlugin, timeGridPlugin, InteractionPlugin]}
             initialView="timeGridWeek"
-            height="84.6vh"
+            height={userRole === "Teacher" ? "84.6vh" : "82.4vh"}
             headerToolbar={{
               left: "prev next",
               center: "title",

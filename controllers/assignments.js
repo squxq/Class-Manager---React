@@ -8,9 +8,9 @@ const { Try } = require("@mui/icons-material")
 
 const getAllAssignments = (req, res) => {
   try {
-    const { id: teacherId } = req.params
+    const { id: userId } = req.params
     const { status } = req.query
-    User.findById(teacherId, (err, user) => {
+    User.findById(userId, (err, user) => {
       if (err) {
         return res.status(StatusCodes.NOT_FOUND).json({
           success: false,
@@ -157,9 +157,9 @@ const createAssignment = async (req, res) => {
 
 const getSingleAssignment = async (req, res) => {
   try {
-    const { id: teacherId } = req.params
+    const { id: userId } = req.params
     const { cardId: assignmentId } = req.query
-    User.findById(teacherId, (err, user) => {
+    User.findById(userId, (err, user) => {
       if (err) {
         return res.status(StatusCodes.NOT_FOUND).json({
           success: false,

@@ -1,22 +1,18 @@
-import React from "react"
+import React, { useState } from "react"
 import {
   AppBar,
-  InputBase,
   Toolbar,
-  useTheme,
   IconButton,
   Button,
   Box,
   Typography,
-  Menu,
   MenuItem,
+  Tabs,
+  Tab,
+  Menu,
 } from "@mui/material"
 import FlexBetween from "./FlexBetween"
 import {
-  LightModeOutlined,
-  DarkModeOutlined,
-  Menu as MenuIcon,
-  Search,
   SettingsOutlined,
   ArrowDropDown,
   LogoutOutlined,
@@ -25,9 +21,9 @@ import { MdWavingHand } from "react-icons/md"
 
 import profilePicture from "../../assets/pfp.jpg"
 import axios from "axios"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 
-const Navbar = ({ data }) => {
+const Navbar = ({ data, userRole, userName }) => {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
   const handleClick = (event) => {
@@ -35,6 +31,7 @@ const Navbar = ({ data }) => {
   }
 
   const navigate = useNavigate()
+  const { id: userId } = useParams()
 
   const handleClose = async () => {
     setAnchorEl(null)
@@ -48,6 +45,23 @@ const Navbar = ({ data }) => {
         navigate(`/`)
       })
       .catch((err) => console.log(err))
+  }
+
+  const [value, setValue] = useState("Calendar")
+
+  const handleChange = (e, newValue) => {
+    switch (newValue) {
+      case "Calendar":
+        navigate(`/calendar/${userId}`)
+        break
+      case "Assignments":
+        navigate(`/assignments/${userId}`)
+        break
+      case "Grades":
+        navigate(`/grades/${userId}`)
+        break
+    }
+    setValue(newValue)
   }
 
   return (
@@ -68,7 +82,11 @@ const Navbar = ({ data }) => {
             p="0.1rem 1.5rem"
             position="relative"
           >
-            <Typography variant="h5" display="flex">
+            <Typography
+              variant="h5"
+              display="flex"
+              sx={{ fontFamily: "Poppins", fontSize: "1.5rem" }}
+            >
               {data}
             </Typography>
             <MdWavingHand
@@ -79,8 +97,76 @@ const Navbar = ({ data }) => {
           </FlexBetween>
         </FlexBetween>
 
+        {/* Middle if userRole === "Student" */}
+        <Box
+          sx={{
+            "& .MuiButtonBase-root": {
+              color: "#f6f6f6",
+            },
+            "& .MuiButtonBase-root:hover": {
+              color: "#3AAFA9",
+            },
+            "& .MuiTabs-indicator": {
+              backgroundColor: "#3AAFA9",
+            },
+          }}
+          display={userRole === "Student" ? "block" : "none"}
+        >
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            sx={{ margin: "1rem 0rem 1rem 0rem" }}
+          >
+            <Tab
+              value="Calendar"
+              label={
+                <span
+                  style={{
+                    color: "#f6f6f6",
+                    fontFamily: "Poppins",
+                    fontSize: "1.5rem",
+                  }}
+                >
+                  Calendar
+                </span>
+              }
+              sx={{ m: "0rem 0.5rem" }}
+            />
+            <Tab
+              value="Assignments"
+              label={
+                <span
+                  style={{
+                    color: "#f6f6f6",
+                    fontFamily: "Poppins",
+                    fontSize: "1.5rem",
+                  }}
+                >
+                  Assignments
+                </span>
+              }
+              sx={{ m: "0rem 0.5rem" }}
+            />
+            <Tab
+              value="Grades"
+              label={
+                <span
+                  style={{
+                    color: "#f6f6f6",
+                    fontFamily: "Poppins",
+                    fontSize: "1.5rem",
+                  }}
+                >
+                  Grades
+                </span>
+              }
+              sx={{ m: "0rem 0.5rem" }}
+            />
+          </Tabs>
+        </Box>
+
         {/* Right Side */}
-        <FlexBetween gap="1.5rem">
+        <FlexBetween gap="1.5rem" marginLeft="14rem">
           <IconButton>
             <SettingsOutlined sx={{ fontSize: "25px", color: "#f6f6f6" }} />
           </IconButton>
@@ -112,10 +198,10 @@ const Navbar = ({ data }) => {
                   fontSize="0.85rem"
                   sx={{ color: "#f6f6f6" }}
                 >
-                  {/* {user.name} */} Francisco
+                  {userName}
                 </Typography>
                 <Typography fontSize="0.75rem" sx={{ color: "#f6f6f6" }}>
-                  {/* {user.occupation} */} Professor
+                  {userRole === "Student" ? "Student" : "Teacher"}
                 </Typography>
               </Box>
               <ArrowDropDown
@@ -126,20 +212,10 @@ const Navbar = ({ data }) => {
               />
             </Button>
             <Menu
-              id="demo-positioned-menu"
-              aria-labelledby="demo-positioned-button"
               anchorEl={anchorEl}
               open={open}
               onClose={() => {
                 setAnchorEl(null)
-              }}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
               }}
               style={{ left: "8px", fontSize: "0.8rem" }}
             >

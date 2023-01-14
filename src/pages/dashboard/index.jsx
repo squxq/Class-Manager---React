@@ -9,6 +9,8 @@ const Layout = () => {
   const [layoutData, setLayoutData] = useState(false)
   const [userId, setUserId] = useState(0)
   const [data, setData] = useState()
+  const [role, setRole] = useState("")
+  const [name, setName] = useState("")
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,9 +20,12 @@ const Layout = () => {
         withCredentials: true,
       })
         .then((res) => {
+          const { userId, role, name } = res.data.user
           setLayoutData(res.data.success)
-          setUserId(res.data.userId)
           setData(res.data.data)
+          setUserId(userId)
+          setRole(role)
+          setName(name)
         })
         .catch((err) => console.log(err))
     }
@@ -34,10 +39,15 @@ const Layout = () => {
     case true:
       return (
         <Box display="flex" width="100%" height="100%">
-          <Sidebar drawerWidth="300px" userId={userId} />
+          <Sidebar
+            drawerWidth="300px"
+            userId={userId}
+            userRole={role}
+            userName={name}
+          />
           <Box flexGrow={1} sx={{ backgroundColor: "#171923" }}>
-            <Navbar data={data} />
-            <Outlet />
+            <Navbar data={data} userRole={role} userName={name} />
+            <Outlet context={{ userRole: role }} />
           </Box>
         </Box>
       )

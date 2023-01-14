@@ -32,7 +32,7 @@ const LoginPage = () => {
       withCredentials: true,
     })
       .then((res) => {
-        const { user, token } = res.data
+        const { user } = res.data
         navigate(`/calendar/${user}`)
       })
       .catch((err) => {

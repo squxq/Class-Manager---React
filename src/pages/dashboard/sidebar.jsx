@@ -30,7 +30,7 @@ import navItems from "./data"
 import profilePicture from "../../assets/pfp.jpg"
 import axios from "axios"
 
-const Sidebar = ({ drawerWidth, userId }) => {
+const Sidebar = ({ drawerWidth, userId, userRole }) => {
   const navigate = useNavigate()
   const [active, setActive] = useState("")
   const { pathname } = useLocation()
@@ -60,7 +60,7 @@ const Sidebar = ({ drawerWidth, userId }) => {
   }
 
   return (
-    <Box component="nav">
+    <Box component="nav" display={userRole === "Teacher" ? "block" : "none"}>
       <Drawer
         variant="permanent"
         anchor="left"
@@ -76,10 +76,10 @@ const Sidebar = ({ drawerWidth, userId }) => {
         }}
       >
         <Box width="100%">
-          <Box m="1.5rem 2rem 2rem 3rem">
+          <Box m="1.5rem 2rem 2rem 1rem">
             <FlexBetween color="#3AAFA9">
               <Box display="flex" alignItems="center" gap="0.5rem">
-                <Typography variant="h4" fontWeight="bold">
+                <Typography variant="h4" fontWeight="bold" align="center">
                   CLASS MANAGER
                 </Typography>
               </Box>

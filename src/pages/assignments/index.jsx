@@ -20,7 +20,7 @@ import {
   ListItemText,
   IconButton,
 } from "@mui/material"
-import { useParams, useSearchParams } from "react-router-dom"
+import { useOutletContext, useParams, useSearchParams } from "react-router-dom"
 import { KeyboardArrowLeft, Edit } from "@mui/icons-material"
 import { styled } from "@mui/material/styles"
 import axios from "axios"
@@ -102,7 +102,13 @@ const CssTextField = styled(TextField)({
   },
 })
 
-const CustomCard = ({ text, id, customClickEvent, cardActionEvent }) => {
+const CustomCard = ({
+  text,
+  id,
+  customClickEvent,
+  cardActionEvent,
+  userRole,
+}) => {
   return (
     <Card
       key={id}
@@ -137,26 +143,30 @@ const CustomCard = ({ text, id, customClickEvent, cardActionEvent }) => {
             {text}
           </Typography>
         </CardContent>
-        <IconButton
-          sx={{
-            marginRight: "2rem",
-            height: "3rem",
-            width: "3rem",
-            color: "#f6f6f6",
-            "&:hover": {
-              backgroundColor: "rgba(58, 175, 169, 0.4)",
-            },
-          }}
-          onClick={(event) => customClickEvent(event, id)}
-        >
-          <Edit />
-        </IconButton>
+        {userRole === "Teacher" && (
+          <IconButton
+            sx={{
+              marginRight: "2rem",
+              height: "3rem",
+              width: "3rem",
+              color: "#f6f6f6",
+              "&:hover": {
+                backgroundColor: "rgba(58, 175, 169, 0.4)",
+              },
+            }}
+            onClick={(event) => customClickEvent(event, id)}
+          >
+            <Edit />
+          </IconButton>
+        )}
       </CardActionArea>
     </Card>
   )
 }
 
 const Assignments = () => {
+  const { userRole } = useOutletContext()
+
   const [value, setValue] = useState("Assigned")
   const handleChange = async (e, newValue) => {
     if (newValue !== "Create") {
@@ -225,6 +235,7 @@ const Assignments = () => {
       url: `http://localhost:5000/assignment/${userId}`,
       params: {
         cardId: id,
+        role: userRole,
       },
     })
       .then((res) => {
@@ -364,24 +375,59 @@ const Assignments = () => {
   const [answers, setAnswers] = useState([])
 
   const handleCardActionClick = async (id) => {
-    await axios({
-      method: "get",
-      url: `http://localhost:5000/answers/${userId}`,
-      params: {
-        id,
-      },
-    })
-      .then((res) => {
-        console.log(res)
-        setAnswers(res.data.answers)
-        setAnswersData(res.data.success)
-        setCreateLabelValue("Answers")
-        setSearchParams({
+    console.log(userRole)
+    if (userRole === "Teacher") {
+      await axios({
+        method: "get",
+        url: `http://localhost:5000/answers/${userId}`,
+        params: {
           id,
-        })
-        setValue("Create")
+        },
       })
-      .catch((err) => console.log(err))
+        .then((res) => {
+          console.log(res)
+          setAnswers(res.data.answers)
+          setAnswersData(res.data.success)
+          setCreateLabelValue("Answers")
+          setSearchParams({
+            id,
+          })
+          setValue("Create")
+        })
+        .catch((err) => console.log(err))
+    } else if (userRole === "Student") {
+      await axios({
+        method: "get",
+        url: `http://localhost:5000/assignment/${userId}`,
+        params: {
+          cardId: id,
+          role: userRole,
+        },
+      })
+        .then((res) => {
+          console.log(res)
+          const { name, start, end, instructions, status } = res.data.assignment
+          setAssignmentName(name)
+          console.log(start, end)
+          setStartValue(
+            `${start.split("T")[0]} - ${start.split("T")[1].split(".")[0]}`
+          )
+          setEndValue(
+            `${end.split("T")[0]} - ${end.split("T")[1].split(".")[0]}`
+          )
+          setStartDate(start)
+          setEndDate(end)
+          setAssignmentInstructions(instructions)
+          setAssignmentStatus(status)
+          setClassName(res.data.classes)
+          setCreateLabelValue("Edit")
+          setSearchParams({
+            id,
+          })
+          setValue("Create")
+        })
+        .catch((err) => console.log(err))
+    }
   }
 
   const [answerGrade, setAnswerGrade] = useState(0)
@@ -405,7 +451,7 @@ const Assignments = () => {
         <Box sx={{ m: "1.5rem 2.5rem" }}>
           <Box margin="2rem">
             <Typography variant="h4" color="#f6f6f6">
-              Assignments
+              See your List of Assignments
             </Typography>
             <Box
               sx={{
@@ -440,26 +486,30 @@ const Assignments = () => {
                   label={<span style={{ color: "#f6f6f6" }}>Completed</span>}
                   sx={{ m: "0rem 0.5rem" }}
                 />
-                <Tab
-                  value="Create"
-                  label={
-                    <span style={{ color: "#f6f6f6" }}>{createLabelValue}</span>
-                  }
-                  sx={{ m: "0rem 0.5rem" }}
-                  onClick={() => {
-                    setStartValue(new Date().toISOString())
-                    setEndValue(
-                      new Date(
-                        new Date().setHours(new Date().getHours() + 1)
-                      ).toISOString()
-                    )
-                  }}
-                />
+                {userRole === "Teacher" && (
+                  <Tab
+                    value="Create"
+                    label={
+                      <span style={{ color: "#f6f6f6" }}>
+                        {createLabelValue}
+                      </span>
+                    }
+                    sx={{ m: "0rem 0.5rem" }}
+                    onClick={() => {
+                      setStartValue(new Date().toISOString())
+                      setEndValue(
+                        new Date(
+                          new Date().setHours(new Date().getHours() + 1)
+                        ).toISOString()
+                      )
+                    }}
+                  />
+                )}
               </Tabs>
             </Box>
           </Box>
           {value !== "Create" ? (
-            <Box height="72.9vh">
+            <Box height={userRole === "Teacher" ? "72.9vh" : "70.6vh"}>
               {assignments.map((assignment) => {
                 return (
                   <CustomCard
@@ -468,12 +518,13 @@ const Assignments = () => {
                     id={assignment._id}
                     customClickEvent={handleCardClick}
                     cardActionEvent={handleCardActionClick}
+                    userRole={userRole}
                   />
                 )
               })}
             </Box>
           ) : (
-            <Box height="72.9vh">
+            <Box height={userRole === "Teacher" ? "72.9vh" : "70.6vh"}>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 {createLabelValue !== "Answers" && (
                   <Button
@@ -490,48 +541,68 @@ const Assignments = () => {
                     <Typography variant="h6">Back</Typography>
                   </Button>
                 )}
-                <Box>
-                  {createLabelValue !== "Answers" && (
-                    <Button
-                      id={createLabelValue}
-                      variant="outlined"
-                      onClick={handleCreateAssignmentClick}
-                      sx={{
-                        border: "1px solid #f6f6f6",
-                        color: "#f6f6f6",
-                        boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                          border: "1px solid #3AAFA9",
-                          boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
-                        },
-                      }}
-                    >
-                      <Typography variant="h5">{createLabelValue}</Typography>
-                    </Button>
-                  )}
-                  {createLabelValue === "Edit" ? (
-                    <Button
-                      variant="outlined"
-                      onClick={handleDeleteAssignment}
-                      sx={{
-                        marginLeft: "2rem",
-                        border: "1px solid #f6f6f6",
-                        color: "#f6f6f6",
-                        boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                          border: "1px solid #3AAFA9",
-                          boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
-                        },
-                      }}
-                    >
-                      <Typography variant="h5">Delete</Typography>
-                    </Button>
-                  ) : (
-                    <></>
-                  )}
-                </Box>
+                {userRole === "Teacher" ? (
+                  <Box>
+                    {createLabelValue !== "Answers" && (
+                      <Button
+                        id={createLabelValue}
+                        variant="outlined"
+                        onClick={handleCreateAssignmentClick}
+                        sx={{
+                          border: "1px solid #f6f6f6",
+                          color: "#f6f6f6",
+                          boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                            border: "1px solid #3AAFA9",
+                            boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
+                          },
+                        }}
+                      >
+                        <Typography variant="h5">{createLabelValue}</Typography>
+                      </Button>
+                    )}
+                    {createLabelValue === "Edit" ? (
+                      <Button
+                        variant="outlined"
+                        onClick={handleDeleteAssignment}
+                        sx={{
+                          marginLeft: "2rem",
+                          border: "1px solid #f6f6f6",
+                          color: "#f6f6f6",
+                          boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                            border: "1px solid #3AAFA9",
+                            boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
+                          },
+                        }}
+                      >
+                        <Typography variant="h5">Delete</Typography>
+                      </Button>
+                    ) : (
+                      <></>
+                    )}
+                  </Box>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    // onClick={handleDeleteAssignment}
+                    sx={{
+                      marginLeft: "2rem",
+                      border: "1px solid #f6f6f6",
+                      color: "#f6f6f6",
+                      boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
+                      "&:hover": {
+                        backgroundColor: "transparent",
+                        border: "1px solid #3AAFA9",
+                        boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
+                      },
+                    }}
+                  >
+                    <Typography variant="h5">Submit</Typography>
+                  </Button>
+                )}
               </Box>
               {createLabelValue !== "Answers" ? (
                 <Box
@@ -563,23 +634,38 @@ const Assignments = () => {
                       >
                         Assignment Name
                       </Typography>
-                      <CssTextField
-                        placeholder="Please type your assignment title..."
-                        variant="standard"
-                        multiline={true}
-                        value={assignmentName}
-                        onChange={(e) => setAssignmentName(e.target.value)}
-                        sx={{
-                          width: "80% !important",
-                          marginLeft: "1rem",
-                          marginTop: "0.5rem",
-                          marginBottom: "2rem",
-                          "& .MuiInputBase-input": {
+                      {userRole === "Teacher" ? (
+                        <CssTextField
+                          placeholder="Please type your assignment title..."
+                          variant="standard"
+                          multiline={true}
+                          value={assignmentName}
+                          onChange={(e) => setAssignmentName(e.target.value)}
+                          sx={{
+                            width: "80% !important",
+                            marginLeft: "1rem",
+                            marginTop: "0.5rem",
+                            marginBottom: "2rem",
+                            "& .MuiInputBase-input": {
+                              fontFamily: "Poppins",
+                              fontSize: "32px",
+                            },
+                          }}
+                        />
+                      ) : (
+                        <Typography
+                          sx={{
+                            width: "80% !important",
+                            marginLeft: "1rem",
+                            marginTop: "0.5rem",
+                            marginBottom: "2rem",
                             fontFamily: "Poppins",
                             fontSize: "32px",
-                          },
-                        }}
-                      />
+                          }}
+                        >
+                          {assignmentName}
+                        </Typography>
+                      )}
                       <Typography
                         variant="standard"
                         sx={{
@@ -592,49 +678,76 @@ const Assignments = () => {
                       >
                         Calendar
                       </Typography>
-                      <CssTextField
-                        placeholder="Please select your assignment start date..."
-                        variant="standard"
-                        multiline={true}
-                        value={
-                          startValue.indexOf("T") > 1
-                            ? `${startValue.split("T")[0]} - ${
-                                startValue.split("T")[1].split(".")[0]
-                              }`
-                            : startValue
-                        }
-                        onClick={openModal}
-                        sx={{
-                          width: "50% !important",
-                          margin: "0.5rem 0rem 0.5rem 1rem",
-                          "& .MuiInputBase-input": {
-                            fontFamily: "Poppins",
-                            fontSize: "16px",
-                          },
-                        }}
-                      />
-                      <CssTextField
-                        placeholder="Please select your assignment end date..."
-                        variant="standard"
-                        multiline={true}
-                        m="0.5rem"
-                        value={
-                          endValue.indexOf("T") > 1
-                            ? `${endValue.split("T")[0]} - ${
-                                endValue.split("T")[1].split(".")[0]
-                              }`
-                            : endValue
-                        }
-                        onClick={openModal}
-                        sx={{
-                          width: "50% !important",
-                          margin: "0.5rem 0rem 2rem 1rem",
-                          "& .MuiInputBase-input": {
-                            fontFamily: "Poppins",
-                            fontSize: "16px",
-                          },
-                        }}
-                      />
+                      {userRole === "Teacher" ? (
+                        <>
+                          <CssTextField
+                            placeholder="Please select your assignment start date..."
+                            variant="standard"
+                            multiline={true}
+                            value={
+                              startValue.indexOf("T") > 1
+                                ? `${startValue.split("T")[0]} - ${
+                                    startValue.split("T")[1].split(".")[0]
+                                  }`
+                                : startValue
+                            }
+                            onClick={openModal}
+                            sx={{
+                              width: "50% !important",
+                              margin: "0.5rem 0rem 0.5rem 1rem",
+                              "& .MuiInputBase-input": {
+                                fontFamily: "Poppins",
+                                fontSize: "16px",
+                              },
+                            }}
+                          />
+                          <CssTextField
+                            placeholder="Please select your assignment end date..."
+                            variant="standard"
+                            multiline={true}
+                            m="0.5rem"
+                            value={
+                              endValue.indexOf("T") > 1
+                                ? `${endValue.split("T")[0]} - ${
+                                    endValue.split("T")[1].split(".")[0]
+                                  }`
+                                : endValue
+                            }
+                            onClick={openModal}
+                            sx={{
+                              width: "50% !important",
+                              margin: "0.5rem 0rem 2rem 1rem",
+                              "& .MuiInputBase-input": {
+                                fontFamily: "Poppins",
+                                fontSize: "16px",
+                              },
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <Typography
+                            sx={{
+                              width: "50% !important",
+                              margin: "0.5rem 0rem 0.5rem 1rem",
+                              fontFamily: "Poppins",
+                              fontSize: "16px",
+                            }}
+                          >
+                            {startValue}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              width: "50% !important",
+                              margin: "0.5rem 0rem 2rem 1rem",
+                              fontFamily: "Poppins",
+                              fontSize: "16px",
+                            }}
+                          >
+                            {endValue}
+                          </Typography>
+                        </>
+                      )}
                       <Typography
                         variant="standard"
                         sx={{
@@ -647,198 +760,18 @@ const Assignments = () => {
                       >
                         Assignment Instructions
                       </Typography>
-                      <CssTextField
-                        placeholder="Please type your assignment instructions..."
-                        variant="standard"
-                        multiline={true}
-                        maxRows={5}
-                        value={assignmentInstructions}
-                        onChange={(e) => {
-                          setAssignmentInstructions(e.target.value)
-                        }}
-                        sx={{
-                          width: "90% !important",
-                          margin: "0.5rem 0rem 0.5rem 1rem",
-                          "& .MuiInputBase-input": {
-                            fontFamily: "Poppins",
-                            fontSize: "25px",
-                          },
-                        }}
-                      />
-                    </FormControl>
-                    <Box>
-                      <FormControl sx={{ margin: "0.5rem 0rem 2rem 0rem" }}>
-                        <Typography
-                          variant="standard"
-                          sx={{
-                            marginTop: "2rem",
-                            marginLeft: "2rem",
-                            fontFamily: "Poppins",
-                            fontSize: "16px",
-                            fontWeight: "550",
-                          }}
-                        >
-                          Assignment Status
-                        </Typography>
-                        <RadioGroup
-                          defaultValue={assignmentStatus}
-                          row
-                          aria-labelledby="demo-row-radio-buttons-group-label"
-                          name="row-radio-buttons-group"
-                          sx={{ margin: "0.5rem 1rem 0rem 1rem" }}
-                        >
-                          <FormControlLabel
-                            value="Completed"
-                            control={
-                              <Radio
-                                sx={{
-                                  color: "#f6f6f6",
-                                  "& .MuiSvgIcon-root": {
-                                    fontFamily: "Poppins",
-                                    fontSize: "25px",
-                                  },
-                                  "&.Mui-checked": {
-                                    color: "#3AAFA9",
-                                  },
-                                }}
-                              />
-                            }
-                            label="Completed"
-                            onClick={() => setAssignmentStatus("Completed")}
-                          />
-                          <FormControlLabel
-                            value="Pending"
-                            control={
-                              <Radio
-                                sx={{
-                                  marginLeft: "1rem",
-                                  color: "#f6f6f6",
-                                  "& .MuiSvgIcon-root": {
-                                    fontSize: 28,
-                                  },
-                                  "&.Mui-checked": {
-                                    color: "#3AAFA9",
-                                  },
-                                }}
-                              />
-                            }
-                            label="Pending"
-                            onClick={() => setAssignmentStatus("Pending")}
-                          />
-                        </RadioGroup>
-                      </FormControl>
-                    </Box>
-                  </Box>
-                  <Box sx={{ marginTop: "2rem", marginLeft: "2rem" }}>
-                    <Box sx={{ display: "flex", flexDirection: "column" }}>
-                      <Typography
-                        variant="standard"
-                        sx={{
-                          marginLeft: "2rem",
-                          fontFamily: "Poppins",
-                          fontSize: "16px",
-                          fontWeight: "550",
-                        }}
-                      >
-                        Assignment Classes
-                      </Typography>
-                      <FormControl sx={{ width: "650px" }}>
-                        <Select
-                          multiple
-                          value={className}
-                          onChange={handleSelectChange}
-                          variant="standard"
-                          placeholder="Please select at least a class for this assignment."
-                          sx={{
-                            margin: "0.5rem 0rem 2rem 1rem",
-                            "& .MuiInputBase-root": {
-                              width: "90%",
-                            },
-                            "& .MuiSvgIcon-root": {
-                              color: "#f6f6f6",
-                            },
-                            "&:before": {
-                              borderBottom: "2px solid #f6f6f6",
-                            },
-                            "&:after": {
-                              borderBottom: "2px solid #3AAFA9",
-                            },
-                            "& .MuiSelect-select": {
-                              width: "90%",
-                            },
-                          }}
-                          renderValue={(selected) => {
-                            return (
-                              <Box
-                                sx={{
-                                  margin: "5px",
-                                  display: "flex",
-                                  flexWrap: "wrap",
-                                  gap: 1,
-                                }}
-                              >
-                                {selected.map((value) => (
-                                  <Chip
-                                    sx={{
-                                      fontFamily: "Poppins",
-                                      fontSize: "25px",
-                                      background: "transparent",
-                                      color: "#f6f6f6",
-                                      boxShadow:
-                                        "0 1px 2px rgba(58, 175, 169, 0.7)",
-                                      "&:hover": {
-                                        cursor: "pointer",
-                                        boxShadow:
-                                          "0 5px 10px rgba(58, 175, 169, 0.4)",
-                                      },
-                                    }}
-                                    key={value}
-                                    label={value}
-                                  />
-                                ))}
-                              </Box>
-                            )
-                          }}
-                          MenuProps={{
-                            PaperProps: {
-                              style: {
-                                maxHeight: 48 * 4.5 + 8,
-                                width: 250,
-                              },
-                            },
-                          }}
-                        >
-                          {classes.map((sClass) => (
-                            <MenuItem
-                              key={sClass._id}
-                              id={sClass._id}
-                              value={sClass.name}
-                            >
-                              <Checkbox
-                                checked={className.indexOf(sClass.name) > -1}
-                              />
-                              <ListItemText primary={sClass.name} />
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        <Typography
-                          variant="standard"
-                          sx={{
-                            marginTop: "2rem",
-                            marginLeft: "2rem",
-                            fontFamily: "Poppins",
-                            fontSize: "16px",
-                            fontWeight: "550",
-                          }}
-                        >
-                          Reference Work
-                        </Typography>
+                      {userRole === "Teacher" ? (
                         <CssTextField
-                          placeholder="Please select some reference work..."
+                          placeholder="Please type your assignment instructions..."
                           variant="standard"
                           multiline={true}
+                          maxRows={5}
+                          value={assignmentInstructions}
+                          onChange={(e) => {
+                            setAssignmentInstructions(e.target.value)
+                          }}
                           sx={{
-                            width: "634px",
+                            width: "90% !important",
                             margin: "0.5rem 0rem 0.5rem 1rem",
                             "& .MuiInputBase-input": {
                               fontFamily: "Poppins",
@@ -846,6 +779,254 @@ const Assignments = () => {
                             },
                           }}
                         />
+                      ) : (
+                        <Typography
+                          variant="standard"
+                          sx={{
+                            width: "90% !important",
+                            margin: "0.5rem 0rem 2rem 1rem",
+                            fontFamily: "Poppins",
+                            fontSize: "25px",
+                          }}
+                        >
+                          {assignmentInstructions}
+                        </Typography>
+                      )}
+
+                      {userRole === "Student" && (
+                        <>
+                          <Typography
+                            variant="standard"
+                            sx={{
+                              marginTop: "2rem",
+                              marginLeft: "2rem",
+                              fontFamily: "Poppins",
+                              fontSize: "16px",
+                              fontWeight: "550",
+                            }}
+                          >
+                            Reference Work
+                          </Typography>
+                          <Typography
+                            variant="standard"
+                            sx={{
+                              width: "90% !important",
+                              margin: "0.5rem 0rem 0.5rem 1rem",
+                              fontFamily: "Poppins",
+                              fontSize: "25px",
+                            }}
+                          >
+                            Reference files provided by the teacher...
+                          </Typography>
+                        </>
+                      )}
+                    </FormControl>
+                    <Box>
+                      {userRole === "Teacher" && (
+                        <FormControl sx={{ margin: "0.5rem 0rem 2rem 0rem" }}>
+                          <Typography
+                            variant="standard"
+                            sx={{
+                              marginTop: "2rem",
+                              marginLeft: "2rem",
+                              fontFamily: "Poppins",
+                              fontSize: "16px",
+                              fontWeight: "550",
+                            }}
+                          >
+                            Assignment Status
+                          </Typography>
+                          <RadioGroup
+                            defaultValue={assignmentStatus}
+                            row
+                            sx={{
+                              margin: "0.5rem 1rem 0rem 1rem",
+                              "& .Mui-disabled": {
+                                color: "#f6f6f6 !important",
+                              },
+                            }}
+                          >
+                            <FormControlLabel
+                              value="Completed"
+                              control={
+                                <Radio
+                                  sx={{
+                                    color: "#f6f6f6",
+                                    "& .MuiSvgIcon-root": {
+                                      fontFamily: "Poppins",
+                                      fontSize: "25px",
+                                    },
+                                    "&.Mui-checked": {
+                                      color: "#3AAFA9",
+                                    },
+                                  }}
+                                />
+                              }
+                              disabled={
+                                assignmentStatus === "Completed" ? false : true
+                              }
+                              label="Completed"
+                              onClick={() => {
+                                if (userRole === "Teacher") {
+                                  setAssignmentStatus("Completed")
+                                }
+                              }}
+                            />
+                            <FormControlLabel
+                              value="Pending"
+                              control={
+                                <Radio
+                                  sx={{
+                                    marginLeft: "1rem",
+                                    color: "#f6f6f6",
+                                    "& .MuiSvgIcon-root": {
+                                      fontSize: 28,
+                                    },
+                                    "&.Mui-checked": {
+                                      color: "#3AAFA9",
+                                    },
+                                  }}
+                                />
+                              }
+                              disabled={
+                                assignmentStatus === "Pending" ? false : true
+                              }
+                              label="Pending"
+                              onClick={() => {
+                                if (userRole === "Teacher") {
+                                  setAssignmentStatus("Pending")
+                                }
+                              }}
+                            />
+                          </RadioGroup>
+                        </FormControl>
+                      )}
+                    </Box>
+                  </Box>
+                  <Box sx={{ marginTop: "2rem", marginLeft: "2rem" }}>
+                    <Box sx={{ display: "flex", flexDirection: "column" }}>
+                      {userRole === "Teacher" && (
+                        <Typography
+                          variant="standard"
+                          sx={{
+                            marginLeft: "2rem",
+                            fontFamily: "Poppins",
+                            fontSize: "16px",
+                            fontWeight: "550",
+                          }}
+                        >
+                          Assignment Classes
+                        </Typography>
+                      )}
+                      <FormControl sx={{ width: "650px" }}>
+                        {userRole === "Teacher" && (
+                          <Select
+                            multiple
+                            value={className}
+                            onChange={handleSelectChange}
+                            variant="standard"
+                            placeholder="Please select at least a class for this assignment."
+                            sx={{
+                              margin: "0.5rem 0rem 2rem 1rem",
+                              "& .MuiInputBase-root": {
+                                width: "90%",
+                              },
+                              "& .MuiSvgIcon-root": {
+                                color: "#f6f6f6",
+                              },
+                              "&:before": {
+                                borderBottom: "2px solid #f6f6f6",
+                              },
+                              "&:after": {
+                                borderBottom: "2px solid #3AAFA9",
+                              },
+                              "& .MuiSelect-select": {
+                                width: "90%",
+                              },
+                            }}
+                            renderValue={(selected) => {
+                              return (
+                                <Box
+                                  sx={{
+                                    margin: "5px",
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 1,
+                                  }}
+                                >
+                                  {selected.map((value) => (
+                                    <Chip
+                                      sx={{
+                                        fontFamily: "Poppins",
+                                        fontSize: "25px",
+                                        background: "transparent",
+                                        color: "#f6f6f6",
+                                        boxShadow:
+                                          "0 1px 2px rgba(58, 175, 169, 0.7)",
+                                        "&:hover": {
+                                          cursor: "pointer",
+                                          boxShadow:
+                                            "0 5px 10px rgba(58, 175, 169, 0.4)",
+                                        },
+                                      }}
+                                      key={value}
+                                      label={value}
+                                    />
+                                  ))}
+                                </Box>
+                              )
+                            }}
+                            MenuProps={{
+                              PaperProps: {
+                                style: {
+                                  maxHeight: 48 * 4.5 + 8,
+                                  width: 250,
+                                },
+                              },
+                            }}
+                          >
+                            {classes.map((sClass) => (
+                              <MenuItem
+                                key={sClass._id}
+                                id={sClass._id}
+                                value={sClass.name}
+                              >
+                                <Checkbox
+                                  checked={className.indexOf(sClass.name) > -1}
+                                />
+                                <ListItemText primary={sClass.name} />
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        )}
+                        {userRole === "Teacher" && (
+                          <>
+                            <Typography
+                              variant="standard"
+                              sx={{
+                                marginLeft: "2rem",
+                                fontFamily: "Poppins",
+                                fontSize: "16px",
+                                fontWeight: "550",
+                              }}
+                            >
+                              Reference Work
+                            </Typography>
+                            <CssTextField
+                              placeholder="Please select some reference work..."
+                              variant="standard"
+                              multiline={true}
+                              sx={{
+                                width: "634px",
+                                margin: "0.5rem 0rem 0.5rem 1rem",
+                                "& .MuiInputBase-input": {
+                                  fontFamily: "Poppins",
+                                  fontSize: "25px",
+                                },
+                              }}
+                            />
+                          </>
+                        )}
                       </FormControl>
                     </Box>
                   </Box>

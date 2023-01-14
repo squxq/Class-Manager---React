@@ -61,7 +61,11 @@ const layoutAuth = async (req, res, next) => {
             const data = `${greetings[i][1]}, ${user.firstname} !!`
             res.status(200).json({
               success: true,
-              userId: id,
+              user: {
+                userId: id,
+                role: user.role,
+                name: `${user.firstname} ${user.lastname}`,
+              },
               data,
             })
             break mainLoop
