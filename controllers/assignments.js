@@ -4,6 +4,7 @@ const Class = require(`../models/Class`)
 const Assignments = require(`../models/Assignments`)
 const mongoose = require(`mongoose`)
 const Answer = require(`../models/Answer`)
+const { Try } = require("@mui/icons-material")
 
 const getAllAssignments = (req, res) => {
   try {
@@ -398,11 +399,15 @@ const getAllAnswers = (req, res) => {
                   })
                 }
                 const studentsTurnedIn = answers.map((ans) => {
-                  return ans.student
+                  return JSON.stringify(ans.student).match(/"(.*?)"/)[1]
                 })
 
                 const tableItems = students.map((student, index) => {
-                  if (studentsTurnedIn.includes(student._id)) {
+                  if (
+                    studentsTurnedIn.includes(
+                      JSON.stringify(student._id).match(/"(.*?)"/)[1]
+                    )
+                  ) {
                     return {
                       id: student._id,
                       name: `${student.firstname} ${student.lastname}`,
@@ -418,6 +423,9 @@ const getAllAnswers = (req, res) => {
                       name: `${student.firstname} ${student.lastname}`,
                       email: student.email,
                       status: "Not turned in",
+                      grade: "No points",
+                      feedback: "Assignment has not been delivered.",
+                      deliveryDate: "---",
                     }
                   }
                 })
@@ -440,6 +448,57 @@ const getAllAnswers = (req, res) => {
   }
 }
 
+const patchAnswer = (req, res) => {
+  try {
+    const { id: teacherId } = req.params
+    const { data } = req.body
+    User.findById(teacherId, (err, user) => {
+      if (err) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: err.message,
+        })
+      }
+
+      User.findById(data.id, (err, user) => {
+        if (err) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: err.message,
+          })
+        }
+
+        if (data.field === "grade") {
+          data.value = Number(data.value)
+        }
+
+        Answer.findOneAndUpdate(
+          { student: user._id },
+          { [data.field]: data.value },
+          { new: true },
+          (err, answer) => {
+            if (err) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: err.message,
+              })
+            }
+
+            return res.status(StatusCodes.OK).json({
+              success: true,
+            })
+          }
+        )
+      })
+    })
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
 module.exports = {
   getAllAssignments,
   createAssignment,
@@ -447,4 +506,5 @@ module.exports = {
   patchAssignment,
   deleteAssignment,
   getAllAnswers,
+  patchAnswer,
 }

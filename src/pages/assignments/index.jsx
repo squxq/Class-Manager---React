@@ -37,24 +37,21 @@ import {
 
 Modal.setAppElement("#root")
 
-const DataGridCustomToolbar = ({ createLabelValue, handleBackClick }) => {
+const DataGridCustomToolbar = ({ handleBackClick }) => {
   return (
-    <GridToolbarContainer>
-      <Box
-        width="100%"
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Box>
+    <GridToolbarContainer sx={{ marginBottom: "1rem" }}>
+      <Box width="100%">
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Button
             sx={{
-              color: "#f6f6f6",
               "&:hover": {
-                backgroundColor: "transparent",
-                color: "#3AAFA9",
+                backgroundColor: "transparent !important",
               },
             }}
             onClick={handleBackClick}
@@ -64,9 +61,9 @@ const DataGridCustomToolbar = ({ createLabelValue, handleBackClick }) => {
           </Button>
           <GridToolbarExport
             sx={{
-              color: "#3AAFA9",
+              color: "#f6f6f6 !important",
               fontSize: "1.25rem",
-              marginLeft: "1rem",
+              marginRight: "2rem",
             }}
             printOptions={{ disableToolbarButton: true }}
           />
@@ -276,11 +273,6 @@ const Assignments = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false)
   const openModal = async () => {
     setModalIsOpen(true)
-    // setStartValue(new Date().toISOString())
-    // console.log(startValue)
-    // setEndValue(
-    //   new Date(new Date().setHours(new Date().getHours() + 1)).toISOString()
-    // )
   }
   const closeModal = async () => {
     setModalIsOpen(false)
@@ -372,9 +364,6 @@ const Assignments = () => {
   const [answers, setAnswers] = useState([])
 
   const handleCardActionClick = async (id) => {
-    setSearchParams({
-      id,
-    })
     await axios({
       method: "get",
       url: `http://localhost:5000/answers/${userId}`,
@@ -387,9 +376,25 @@ const Assignments = () => {
         setAnswers(res.data.answers)
         setAnswersData(res.data.success)
         setCreateLabelValue("Answers")
+        setSearchParams({
+          id,
+        })
         setValue("Create")
       })
       .catch((err) => console.log(err))
+  }
+
+  const [answerGrade, setAnswerGrade] = useState(0)
+
+  const handleAnswerPatch = async (e) => {
+    console.log(e)
+    await axios({
+      method: "patch",
+      url: `http://localhost:5000/answers/${userId}`,
+      data: {
+        data: e,
+      },
+    })
   }
 
   switch (assignmentsData) {
@@ -879,10 +884,10 @@ const Assignments = () => {
                     ".MuiButtonBase-root": {
                       color: "#f6f6f6",
                     },
-                    ".MuiToolbar-root": {
-                      color: "#f6f6f6",
+                    ".MuiButtonBase-root:hover": {
+                      color: "#3AAFA9",
                     },
-                    ".MuiSvgIcon-root": {
+                    ".MuiToolbar-root": {
                       color: "#f6f6f6",
                     },
                     ".MuiDataGrid-columnHeaderTitleContainer": {
@@ -924,19 +929,48 @@ const Assignments = () => {
                         field: "grade",
                         headerName: "Grade / 200",
                         flex: 0.5,
+                        editable: true,
+                        preProcessEditCellProps: (e) => {
+                          if (isNaN(Number(e.props.value))) {
+                            return {
+                              ...e.props,
+                              error: isNaN(Number(e.props.value)),
+                            }
+                          } else {
+                            return {
+                              ...e.props,
+                              error:
+                                Number(e.props.value) < 0 ||
+                                Number(e.props.value) > 200,
+                            }
+                          }
+                        },
                       },
                       {
                         field: "feedback",
                         headerName: "Feedback",
                         flex: 1,
+                        editable: true,
+                        preProcessEditCellProps: (e) => {
+                          return {
+                            ...e.props,
+                            error:
+                              typeof e.props.value !== "string" ||
+                              e.props.value === "",
+                          }
+                        },
                       },
                       {
                         field: "deliveryDate",
                         headerName: "Delivery Date",
                         flex: 0.5,
+                        align: "center",
                       },
                     ]}
                     // rowCount={rowCount || 0}
+                    isCellEditable={(params) =>
+                      params.row.status !== "Not turned in"
+                    }
                     rowsPerPage={-1}
                     rowsPerPageOptions={[]}
                     sortingOrder={["desc", "asc"]}
@@ -947,11 +981,11 @@ const Assignments = () => {
                     }}
                     components={{ Toolbar: DataGridCustomToolbar }}
                     componentsProps={{
-                      Toolbar: {
-                        createLabelValue,
+                      toolbar: {
                         handleBackClick,
                       },
                     }}
+                    onCellEditCommit={(e) => handleAnswerPatch(e)}
                   />
                 </Box>
               )}

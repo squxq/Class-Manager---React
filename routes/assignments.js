@@ -7,6 +7,7 @@ const {
   patchAssignment,
   deleteAssignment,
   getAllAnswers,
+  patchAnswer,
 } = require(`../controllers/assignments`)
 
 router.get(`/assignments/:id`, getAllAssignments)
@@ -16,5 +17,6 @@ router.patch(`/assignments/:id`, patchAssignment)
 router.delete(`/assignments/:id`, deleteAssignment)
 
 router.get(`/answers/:id`, getAllAnswers)
+router.patch(`/answers/:id`, patchAnswer)
 
 module.exports = router
