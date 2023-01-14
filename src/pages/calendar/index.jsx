@@ -105,7 +105,7 @@ const Calendar = () => {
       })
   }
 
-  const [eventOpen, setEventOpen] = React.useState(false)
+  const [eventOpen, setEventOpen] = useState(false)
   const closeEvent = async () => {
     setEventOpen(false)
     setEventTitle("")

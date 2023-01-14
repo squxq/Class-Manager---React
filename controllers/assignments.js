@@ -2,6 +2,7 @@ const { StatusCodes } = require(`http-status-codes`)
 const User = require(`../models/User`)
 const Class = require(`../models/Class`)
 const Assignments = require(`../models/Assignments`)
+const mongoose = require(`mongoose`)
 
 const getAllAssignments = (req, res) => {
   try {
@@ -57,7 +58,7 @@ const getAllAssignments = (req, res) => {
 const createAssignment = async (req, res) => {
   try {
     const { id: teacherId } = req.params
-    const {
+    let {
       assignmentName,
       assignmentStartDate,
       assignmentEndDate,
@@ -65,7 +66,7 @@ const createAssignment = async (req, res) => {
       assignmentStatus,
       classes,
     } = req.body
-    User.findById(teacherId, async (err, user) => {
+    User.findById(teacherId, (err, user) => {
       if (err) {
         return res.status(StatusCodes.NOT_FOUND).json({
           success: false,
@@ -73,21 +74,49 @@ const createAssignment = async (req, res) => {
         })
       }
 
-      const toGoClasses = classes.map(async (singleClass) => {
-        const foundClass = await Class.findById(singleClass.id)
-        return foundClass._id
-      })
+      Class.find(
+        {
+          _id: {
+            $in: classes.map((sClass) => {
+              return mongoose.Types.ObjectId(sClass.id)
+            }),
+          },
+        },
+        async (err, docs) => {
+          if (err) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+              success: false,
+              err: err.message,
+            })
+          }
 
-      const newAssignment = await Assignments.create({
-        name: assignmentName,
-        start: assignmentStartDate,
-        end: assignmentEndDate,
-        instructions: assignmentInstructions,
-        status: assignmentStatus,
-        classes: toGoClasses,
-        teacher: user._id,
-      })
-      console.log(toGoClasses)
+          if (Object.keys(assignmentStartDate).length === 0) {
+            assignmentStartDate = new Date().toISOString()
+          }
+          if (Object.keys(assignmentEndDate).length === 0) {
+            assignmentEndDate = new Date(
+              new Date().setHours(new Date().getHours() + 1)
+            ).toISOString()
+          }
+
+          const newAssignment = await Assignments.create({
+            name: assignmentName,
+            start: assignmentStartDate,
+            end: assignmentEndDate,
+            instructions: assignmentInstructions,
+            status: assignmentStatus,
+            classes: docs.map((doc) => {
+              return doc._id
+            }),
+            teacher: user._id,
+          })
+
+          return res.status(StatusCodes.CREATED).json({
+            success: true,
+            newAssignment,
+          })
+        }
+      )
     })
   } catch (err) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({

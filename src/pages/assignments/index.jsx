@@ -181,6 +181,7 @@ const Assignments = () => {
   }
 
   const handleCreateAssignmentClick = async () => {
+    console.log(startDate, endDate)
     await axios({
       method: "post",
       url: `http://localhost:5000/assignments/${userId}`,
