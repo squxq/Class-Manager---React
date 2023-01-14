@@ -34,37 +34,44 @@ const layoutAuth = async (req, res, next) => {
 
     const { id, firstname, email } = decoded
     User.findById(id, (err, user) => {
-      if (err) {
-        return res.status(StatusCodes.NOT_FOUND).json({
-          success: false,
-          err: `User not found.`,
-        })
-      }
-      if (user.email !== email) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({
-          success: false,
-          err: `Unauthorized to access this route.`,
-        })
-      }
-      if (!user.active) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({
-          success: false,
-          err: `Account not active.`,
-        })
-      }
-
-      const hours = new Date().getHours()
-
-      mainLoop: for (let i = 0; i < greetings.length; i++) {
-        if (hours >= greetings[i][0]) {
-          const data = `${greetings[i][1]}, ${user.firstname} !!`
-          res.status(200).json({
-            success: true,
-            userId: id,
-            data,
+      try {
+        if (err) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: `User not found.`,
           })
-          break mainLoop
         }
+        if (user.email !== email) {
+          return res.status(StatusCodes.UNAUTHORIZED).json({
+            success: false,
+            err: `Unauthorized to access this route.`,
+          })
+        }
+        if (!user.active) {
+          return res.status(StatusCodes.UNAUTHORIZED).json({
+            success: false,
+            err: `Account not active.`,
+          })
+        }
+
+        const hours = new Date().getHours()
+
+        mainLoop: for (let i = 0; i < greetings.length; i++) {
+          if (hours >= greetings[i][0]) {
+            const data = `${greetings[i][1]}, ${user.firstname} !!`
+            res.status(200).json({
+              success: true,
+              userId: id,
+              data,
+            })
+            break mainLoop
+          }
+        }
+      } catch (err) {
+        return res.status(StatusCodes.UNAUTHORIZED).json({
+          success: false,
+          err: err.message,
+        })
       }
     })
   } catch (error) {
