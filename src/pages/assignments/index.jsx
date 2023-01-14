@@ -633,7 +633,7 @@ const Assignments = () => {
                     value={startValue}
                     inputFormat="DD/MM/YYYY hh:mm A"
                     onChange={(newValue) => {
-                      setStartValue(newValue)
+                      setStartValue(newValue.toISOString())
                       setStartDate(newValue)
                     }}
                   />
@@ -647,7 +647,7 @@ const Assignments = () => {
                     value={endValue}
                     inputFormat="DD/MM/YYYY hh:mm A"
                     onChange={(newValue) => {
-                      setEndValue(newValue)
+                      setEndValue(newValue.toISOString())
                       setEndDate(newValue)
                     }}
                   />
