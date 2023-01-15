@@ -212,7 +212,7 @@ const createAssignment = async (req, res) => {
 const getSingleAssignment = async (req, res) => {
   try {
     const { id: userId } = req.params
-    const { cardId: assignmentId } = req.query
+    const { cardId: assignmentId, role } = req.query
     User.findById(userId, (err, user) => {
       if (err) {
         return res.status(StatusCodes.NOT_FOUND).json({
@@ -220,6 +220,14 @@ const getSingleAssignment = async (req, res) => {
           err: err.message,
         })
       }
+
+      if (user.role !== role) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          err: "Something went wrong, please try again later.",
+        })
+      }
+
       Assignments.findById(assignmentId, (err, assignment) => {
         if (err) {
           return res.status(StatusCodes.NOT_FOUND).json({
@@ -227,25 +235,85 @@ const getSingleAssignment = async (req, res) => {
             err: err.message,
           })
         }
-
-        Class.find(
-          {
-            _id: { $in: assignment.classes },
-          },
-          (err, docs) => {
-            if (err) {
-              return res.status(StatusCodes.NOT_FOUND).json({
-                success: false,
-                err: err.message,
+        if (role === "Teacher") {
+          Class.find(
+            {
+              _id: { $in: assignment.classes },
+            },
+            (err, docs) => {
+              if (err) {
+                return res.status(StatusCodes.NOT_FOUND).json({
+                  success: false,
+                  err: err.message,
+                })
+              }
+              return res.status(StatusCodes.OK).json({
+                success: true,
+                assignment,
+                classes: docs.map((doc) => doc.name),
               })
             }
-            return res.status(StatusCodes.OK).json({
-              success: true,
-              assignment,
-              classes: docs.map((doc) => doc.name),
-            })
-          }
-        )
+          )
+        } else if (role === "Student") {
+          Answer.find(
+            {
+              student: user._id,
+              assignment: assignmentId,
+            },
+            (err, answer) => {
+              if (err) {
+                return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                  success: false,
+                  err: err.message,
+                })
+              }
+
+              if (answer.length === 0) {
+                return res.status(StatusCodes.OK).json({
+                  success: true,
+                  assignment,
+                  answer: {
+                    feedback: "Feedback provided by the teacher...",
+                    grade: "Grade provided by the teacher...",
+                    deliveryDate: "When the assginment was turned in...",
+                  },
+                })
+              } else {
+                if (answer[0].grade === -1) {
+                  return res.status(StatusCodes.OK).json({
+                    success: true,
+                    assignment,
+                    answer: {
+                      content: answer[0].content,
+                      feedback: answer[0].feedback,
+                      grade: `No points...`,
+                      deliveryDate: `${
+                        answer[0].deliveryDate.split("T")[0]
+                      } - ${
+                        answer[0].deliveryDate.split("T")[1].split(".")[0]
+                      }`,
+                    },
+                  })
+                } else {
+                  return res.status(StatusCodes.OK).json({
+                    success: true,
+                    assignment,
+                    answer: {
+                      content: answer[0].content,
+                      feedback: answer[0].feedback,
+                      grade: `${answer[0].grade} / 200`,
+                      deliveryDate: `${
+                        answer[0].deliveryDate.split("T")[0]
+                      } - ${
+                        answer[0].deliveryDate.split("T")[1].split(".")[0]
+                      }`,
+                    },
+                  })
+                }
+              }
+            }
+          )
+        }
       })
     })
   } catch (err) {
@@ -553,6 +621,66 @@ const patchAnswer = (req, res) => {
   }
 }
 
+const createAnswer = (req, res) => {
+  try {
+    const { id: studentId } = req.params
+    const { id: assignmentId } = req.body
+    User.find({ _id: studentId }, (err, student) => {
+      if (err) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          err: err.message,
+        })
+      }
+
+      Answer.find(
+        {
+          student: student[0]._id,
+          assignment: assignmentId,
+        },
+        async (err, answer) => {
+          if (err) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              err: err.message,
+            })
+          }
+
+          if (answer.length === 0) {
+            if (assignmentId) {
+              const newAnswer = Answer.create({
+                assignment: assignmentId,
+                student: student[0]._id,
+                deliveryDate: new Date().toISOString(),
+              })
+
+              return res.status(StatusCodes.CREATED).json({
+                success: true,
+                newAnswer,
+              })
+            } else {
+              return res.status(StatusCodes.CREATED).json({
+                success: false,
+                err: `An answer must have an assignment.`,
+              })
+            }
+          } else {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+              success: false,
+              err: "You cannot submit more than one answer to one assignment.",
+            })
+          }
+        }
+      )
+    })
+  } catch (err) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
 module.exports = {
   getAllAssignments,
   createAssignment,
@@ -561,4 +689,5 @@ module.exports = {
   deleteAssignment,
   getAllAnswers,
   patchAnswer,
+  createAnswer,
 }

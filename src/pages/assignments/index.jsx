@@ -19,6 +19,8 @@ import {
   Checkbox,
   ListItemText,
   IconButton,
+  Stack,
+  Alert,
 } from "@mui/material"
 import { useOutletContext, useParams, useSearchParams } from "react-router-dom"
 import { KeyboardArrowLeft, Edit } from "@mui/icons-material"
@@ -175,6 +177,7 @@ const Assignments = () => {
         url: `http://localhost:5000/assignments/${userId}`,
         params: {
           status: newValue,
+          userRole,
         },
       })
         .then((res) => {
@@ -377,8 +380,56 @@ const Assignments = () => {
   const [answersData, setAnswersData] = useState(false)
   const [answers, setAnswers] = useState([])
 
+  const [answerFeedback, setAnswerFeedback] = useState("")
+  const [answerGrade, setAnswerGrade] = useState("")
+  const [answerDeliveryDate, setAnswerDeliveryDate] = useState("")
+
+  const [answerContent, setAnswerContent] = useState([])
+
+  const getAnswerFromDb = async (id) => {
+    await axios({
+      method: "get",
+      url: `http://localhost:5000/assignment/${userId}`,
+      params: {
+        cardId: id,
+        role: userRole,
+      },
+    })
+      .then((res) => {
+        console.log(res)
+        const { name, start, end, instructions, status } = res.data.assignment
+        setAssignmentName(name)
+        setStartValue(
+          `${start.split("T")[0]} - ${start.split("T")[1].split(".")[0]}`
+        )
+        setEndValue(`${end.split("T")[0]} - ${end.split("T")[1].split(".")[0]}`)
+        setAssignmentInstructions(instructions)
+        setAssignmentStatus(status)
+
+        const { feedback, grade, deliveryDate } = res.data.answer
+        setAnswerFeedback(feedback)
+        setAnswerGrade(grade)
+        setAnswerDeliveryDate(deliveryDate)
+
+        if (res.data.answer.content) {
+          if (res.data.answer.content.length !== 0) {
+            setAnswerContent(res.data.answer.content)
+          } else {
+            setAnswerContent("No work provided for this answer.")
+          }
+        } else {
+          setAnswerContent(false)
+        }
+
+        setSearchParams({
+          id,
+        })
+        setValue("Create")
+      })
+      .catch((err) => console.log(err))
+  }
+
   const handleCardActionClick = async (id) => {
-    console.log(userRole)
     if (userRole === "Teacher") {
       await axios({
         method: "get",
@@ -399,41 +450,9 @@ const Assignments = () => {
         })
         .catch((err) => console.log(err))
     } else if (userRole === "Student") {
-      await axios({
-        method: "get",
-        url: `http://localhost:5000/assignment/${userId}`,
-        params: {
-          cardId: id,
-          role: userRole,
-        },
-      })
-        .then((res) => {
-          console.log(res)
-          const { name, start, end, instructions, status } = res.data.assignment
-          setAssignmentName(name)
-          console.log(start, end)
-          setStartValue(
-            `${start.split("T")[0]} - ${start.split("T")[1].split(".")[0]}`
-          )
-          setEndValue(
-            `${end.split("T")[0]} - ${end.split("T")[1].split(".")[0]}`
-          )
-          setStartDate(start)
-          setEndDate(end)
-          setAssignmentInstructions(instructions)
-          setAssignmentStatus(status)
-          setClassName(res.data.classes)
-          setCreateLabelValue("Edit")
-          setSearchParams({
-            id,
-          })
-          setValue("Create")
-        })
-        .catch((err) => console.log(err))
+      getAnswerFromDb(id)
     }
   }
-
-  const [answerGrade, setAnswerGrade] = useState(0)
 
   const handleAnswerPatch = async (e) => {
     console.log(e)
@@ -444,6 +463,31 @@ const Assignments = () => {
         data: e,
       },
     })
+  }
+
+  const [assignmentContent, setAssignmentContent] = useState("")
+  const [answerError, setAnswerError] = useState("")
+
+  const handleSubmitAnswer = async () => {
+    await axios({
+      method: "post",
+      url: `http://localhost:5000/answers/${userId}`,
+      data: {
+        id: searchParams.get("id"),
+      },
+    })
+      .then((res) => {
+        console.log(res)
+        getAnswerFromDb(searchParams.get("id"))
+      })
+      .catch((err) => {
+        console.log(err)
+        setAnswerError(err.response.data.err)
+        console.log(answerError)
+        setTimeout(() => {
+          setAnswerError("")
+        }, 3000)
+      })
   }
 
   switch (assignmentsData) {
@@ -588,23 +632,61 @@ const Assignments = () => {
                     )}
                   </Box>
                 ) : (
-                  <Button
-                    variant="outlined"
-                    // onClick={handleDeleteAssignment}
-                    sx={{
-                      marginLeft: "2rem",
-                      border: "1px solid #f6f6f6",
-                      color: "#f6f6f6",
-                      boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
-                      "&:hover": {
-                        backgroundColor: "transparent",
-                        border: "1px solid #3AAFA9",
-                        boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
-                      },
-                    }}
-                  >
-                    <Typography variant="h5">Submit</Typography>
-                  </Button>
+                  <Box sx={{ display: "flex", flexDirection: "row" }}>
+                    {answerError && (
+                      <Stack sx={{ marginTop: "1.5px" }}>
+                        <Alert
+                          variant="outlined"
+                          severity="error"
+                          sx={{
+                            padding: "1px 15px 1px 10px",
+                            height: "41px !important",
+                            fontSize: "0.85rem",
+                            "& .MuiAlert-message": {
+                              paddingTop: "9px",
+                            },
+                          }}
+                        >
+                          {answerError}
+                        </Alert>
+                      </Stack>
+                    )}
+                    {!answerContent ? (
+                      <Button
+                        variant="outlined"
+                        onClick={handleSubmitAnswer}
+                        sx={{
+                          marginLeft: "2rem",
+                          border: "1px solid #f6f6f6",
+                          color: "#f6f6f6",
+                          boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                            border: "1px solid #3AAFA9",
+                            boxShadow: "0 5px 10px rgba(58, 175, 169, 0.7)",
+                          },
+                        }}
+                      >
+                        <Typography variant="h5">Submit</Typography>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outlined"
+                        onClick={handleSubmitAnswer}
+                        sx={{
+                          marginLeft: "2rem",
+                          border: "1px solid #f6f6f6",
+                          color: "#f6f6f6",
+                          boxShadow: "0 1px 2px rgba(255, 255, 255, 0.7)",
+                          "&:hover": {
+                            border: "1px solid #f6f6f6",
+                          },
+                        }}
+                      >
+                        <Typography variant="h5">Submit</Typography>
+                      </Button>
+                    )}
+                  </Box>
                 )}
               </Box>
               {createLabelValue !== "Answers" ? (
@@ -908,7 +990,7 @@ const Assignments = () => {
                   </Box>
                   <Box sx={{ marginTop: "2rem", marginLeft: "2rem" }}>
                     <Box sx={{ display: "flex", flexDirection: "column" }}>
-                      {userRole === "Teacher" && (
+                      {userRole === "Teacher" ? (
                         <Typography
                           variant="standard"
                           sx={{
@@ -920,9 +1002,21 @@ const Assignments = () => {
                         >
                           Assignment Classes
                         </Typography>
+                      ) : (
+                        <Typography
+                          variant="standard"
+                          sx={{
+                            marginLeft: "2rem",
+                            fontFamily: "Poppins",
+                            fontSize: "16px",
+                            fontWeight: "550",
+                          }}
+                        >
+                          Your assignment work
+                        </Typography>
                       )}
                       <FormControl sx={{ width: "650px" }}>
-                        {userRole === "Teacher" && (
+                        {userRole === "Teacher" ? (
                           <Select
                             value={className}
                             onChange={handleSelectChange}
@@ -1000,8 +1094,43 @@ const Assignments = () => {
                               </MenuItem>
                             ))}
                           </Select>
+                        ) : (
+                          <>
+                            {!answerContent ? (
+                              <CssTextField
+                                placeholder="Please select your assignment work..."
+                                variant="standard"
+                                multiline={true}
+                                maxRows={5}
+                                value={assignmentContent}
+                                onChange={(e) => {
+                                  setAssignmentContent(e.target.value)
+                                }}
+                                sx={{
+                                  width: "90% !important",
+                                  margin: "1rem 0rem 2rem 1rem",
+                                  "& .MuiInputBase-input": {
+                                    fontFamily: "Poppins",
+                                    fontSize: "25px",
+                                  },
+                                }}
+                              />
+                            ) : (
+                              <Typography
+                                variant="standard"
+                                sx={{
+                                  width: "90% !important",
+                                  margin: "0.5rem 0rem 2rem 1rem",
+                                  fontFamily: "Poppins",
+                                  fontSize: "25px",
+                                }}
+                              >
+                                {answerContent}
+                              </Typography>
+                            )}
+                          </>
                         )}
-                        {userRole === "Teacher" && (
+                        {userRole === "Teacher" ? (
                           <>
                             <Typography
                               variant="standard"
@@ -1027,6 +1156,77 @@ const Assignments = () => {
                                 },
                               }}
                             />
+                          </>
+                        ) : (
+                          <>
+                            <Typography
+                              variant="standard"
+                              sx={{
+                                marginTop: "2rem",
+                                marginLeft: "2rem",
+                                fontFamily: "Poppins",
+                                fontSize: "16px",
+                                fontWeight: "550",
+                              }}
+                            >
+                              Feedback
+                            </Typography>
+                            <Typography
+                              variant="standard"
+                              sx={{
+                                width: "90% !important",
+                                margin: "0.5rem 0rem 2rem 1rem",
+                                fontFamily: "Poppins",
+                                fontSize: "25px",
+                              }}
+                            >
+                              {answerFeedback}
+                            </Typography>
+                            <Typography
+                              variant="standard"
+                              sx={{
+                                marginTop: "2rem",
+                                marginLeft: "2rem",
+                                fontFamily: "Poppins",
+                                fontSize: "16px",
+                                fontWeight: "550",
+                              }}
+                            >
+                              Grade
+                            </Typography>
+                            <Typography
+                              variant="standard"
+                              sx={{
+                                width: "90% !important",
+                                margin: "0.5rem 0rem 2rem 1rem",
+                                fontFamily: "Poppins",
+                                fontSize: "25px",
+                              }}
+                            >
+                              {answerGrade}
+                            </Typography>
+                            <Typography
+                              variant="standard"
+                              sx={{
+                                marginTop: "2rem",
+                                marginLeft: "2rem",
+                                fontFamily: "Poppins",
+                                fontSize: "16px",
+                                fontWeight: "550",
+                              }}
+                            >
+                              Delivery Date
+                            </Typography>
+                            <Typography
+                              sx={{
+                                width: "50% !important",
+                                margin: "0.5rem 0rem 0.5rem 1rem",
+                                fontFamily: "Poppins",
+                                fontSize: "16px",
+                              }}
+                            >
+                              {answerDeliveryDate}
+                            </Typography>
                           </>
                         )}
                       </FormControl>

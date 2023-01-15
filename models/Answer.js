@@ -12,12 +12,13 @@ const AnswerSchema = new mongoose.Schema(
     },
     content: {
       type: Array,
-      //   required: [true, "please provide valid content."],
+      required: [true, "please provide valid content."],
+      default: [],
     },
     grade: {
       type: Number,
       required: [true, "Please provide a grade for the student's answer."],
-      default: 0,
+      default: -1,
     },
     feedback: {
       type: String,
