@@ -296,7 +296,7 @@ const Summaries = () => {
             }}
           >
             <Typography variant="h4" color="#f6f6f6">
-              Summaries
+              See your list of summaries below.
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "row" }}>
               {classError && (

@@ -15,7 +15,14 @@ import {
   LoginLink,
 } from "../signup-elements.js"
 
-import { Box, FormControl, Select, MenuItem, InputLabel } from "@mui/material"
+import {
+  Box,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel,
+  TextField,
+} from "@mui/material"
 import styled from "styled-components"
 
 const RoleBox = styled.div`
@@ -86,6 +93,22 @@ const RoleBox = styled.div`
     color: white !important;
   }
 `
+
+const CssTextField = styled(TextField)({
+  width: "100%",
+  "& .MuiInputBase-input": {
+    color: "#f6f6f6",
+  },
+  "& label.Mui-focused": {
+    color: "#3AAFA9",
+  },
+  "& .MuiInput-underline:before": {
+    borderBottomColor: "#f6f6f6",
+  },
+  "& .MuiInput-underline:after": {
+    borderBottomColor: "#3AAFA9",
+  },
+})
 
 const SignupPage = () => {
   const [firstname, setFirstname] = useState("")
@@ -202,15 +225,19 @@ const SignupPage = () => {
                       minWidth: 120,
                     }}
                   >
-                    <InputLabel id="demo-simple-select-standard-label">
-                      Role
-                    </InputLabel>
+                    <InputLabel>Role</InputLabel>
                     <Select
-                      labelId="demo-simple-select-standard-label"
-                      id="demo-simple-select-standard"
                       value={role}
                       onChange={(event) => setRole(event.target.value)}
-                      label="Age"
+                      label="Role"
+                      sx={{
+                        "&:before": {
+                          borderBottom: "2px solid #f6f6f6",
+                        },
+                        "&:after": {
+                          borderBottom: "2px solid #3AAFA9",
+                        },
+                      }}
                     >
                       <MenuItem value={"Teacher"}>Teacher</MenuItem>
                       <MenuItem value={"Student"}>Student</MenuItem>
