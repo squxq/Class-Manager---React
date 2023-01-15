@@ -75,8 +75,6 @@ const ClassCard = ({
       sx={{
         backgroundImage: "none",
         borderRadius: "0.55rem",
-        borderColor: "#3AAFA9",
-        borderWidth: "2px",
         margin: "0rem 5rem 2rem 5rem",
         cursor: "pointer",
         maxHeight: "250px",

@@ -29,36 +29,34 @@ const getAllSummaries = async (req, res) => {
           })
         }
 
-        const summaries = docs.map((doc) => {
-          for (let singleClass of classes) {
-            if (
-              JSON.stringify(singleClass.id).match(/"(.*?)"/)[1] ===
-              JSON.stringify(doc.class).match(/"(.*?)"/)[1]
-            ) {
-              return {
-                id: doc._id,
-                created: `${JSON.stringify(doc.createdAt)
-                  .split("T")[0]
-                  .slice(1)} - ${
-                  JSON.stringify(doc.createdAt).split("T")[1].split(".")[0]
-                }`,
-                state: doc.state,
-                class: singleClass.name,
-                number: doc.number,
-                content: doc.content,
-                updated: `${JSON.stringify(doc.updatedAt)
-                  .split("T")[0]
-                  .slice(1)} - ${
-                  JSON.stringify(doc.updatedAt).split("T")[1].split(".")[0]
-                }`,
+        const summaries = docs
+          .map((doc) => {
+            for (let singleClass of classes) {
+              if (
+                JSON.stringify(singleClass.id).match(/"(.*?)"/)[1] ===
+                JSON.stringify(doc.class).match(/"(.*?)"/)[1]
+              ) {
+                return {
+                  id: doc._id,
+                  created: `${JSON.stringify(doc.createdAt)
+                    .split("T")[0]
+                    .slice(1)} - ${
+                    JSON.stringify(doc.createdAt).split("T")[1].split(".")[0]
+                  }`,
+                  state: doc.state,
+                  class: singleClass.name,
+                  number: doc.number,
+                  content: doc.content,
+                  updated: `${JSON.stringify(doc.updatedAt)
+                    .split("T")[0]
+                    .slice(1)} - ${
+                    JSON.stringify(doc.updatedAt).split("T")[1].split(".")[0]
+                  }`,
+                }
               }
             }
-          }
-        })
-
-        if (summaries.includes(undefined)) {
-          summaries.pop()
-        }
+          })
+          .filter(Boolean)
 
         return res.status(StatusCodes.OK).json({
           success: true,
@@ -233,32 +231,38 @@ const deleteSummary = async (req, res) => {
               }
             })
 
-            const summaries = docs.map((doc) => {
-              for (let singleClass of classes) {
-                if (
-                  JSON.stringify(singleClass.id).match(/"(.*?)"/)[1] ===
-                  JSON.stringify(doc.class).match(/"(.*?)"/)[1]
-                ) {
-                  return {
-                    id: doc._id,
-                    created: `${JSON.stringify(doc.createdAt)
-                      .split("T")[0]
-                      .slice(1)} - ${
-                      JSON.stringify(doc.createdAt).split("T")[1].split(".")[0]
-                    }`,
-                    state: doc.state,
-                    class: singleClass.name,
-                    number: doc.number,
-                    content: doc.content,
-                    updated: `${JSON.stringify(doc.updatedAt)
-                      .split("T")[0]
-                      .slice(1)} - ${
-                      JSON.stringify(doc.updatedAt).split("T")[1].split(".")[0]
-                    }`,
+            const summaries = docs
+              .map((doc) => {
+                for (let singleClass of classes) {
+                  if (
+                    JSON.stringify(singleClass.id).match(/"(.*?)"/)[1] ===
+                    JSON.stringify(doc.class).match(/"(.*?)"/)[1]
+                  ) {
+                    return {
+                      id: doc._id,
+                      created: `${JSON.stringify(doc.createdAt)
+                        .split("T")[0]
+                        .slice(1)} - ${
+                        JSON.stringify(doc.createdAt)
+                          .split("T")[1]
+                          .split(".")[0]
+                      }`,
+                      state: doc.state,
+                      class: singleClass.name,
+                      number: doc.number,
+                      content: doc.content,
+                      updated: `${JSON.stringify(doc.updatedAt)
+                        .split("T")[0]
+                        .slice(1)} - ${
+                        JSON.stringify(doc.updatedAt)
+                          .split("T")[1]
+                          .split(".")[0]
+                      }`,
+                    }
                   }
                 }
-              }
-            })
+              })
+              .filter(Boolean)
 
             res.status(StatusCodes.OK).json({
               success: true,

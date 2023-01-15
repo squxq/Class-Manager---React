@@ -31,7 +31,7 @@ const AssignmentsSchema = new mongoose.Schema(
       type: Array,
     },
     classes: {
-      type: Array,
+      type: mongoose.ObjectId,
       required: [true, "An assignment must be assigned to a class."],
     },
     teacher: {

@@ -3,6 +3,8 @@ const User = require("../models/User")
 const Class = require("../models/Class")
 const classesErrors = require("../errors/classes-errors")
 const mongoose = require("mongoose")
+const Summaries = require("../models/Summaries")
+const Assignments = require("../models/Assignments")
 
 const classRewrite = (docs) => {
   const classesArray = [...docs]
@@ -453,9 +455,27 @@ const deleteClass = (req, res) => {
           })
         }
 
-        return res.status(StatusCodes.OK).json({
-          success: true,
-          deleteClass: deletedClass._id,
+        Summaries.deleteMany({ class: deletedClass._id }, (err, docs) => {
+          if (err) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+              success: false,
+              err: err.message,
+            })
+          }
+
+          Assignments.deleteMany({ classes: deletedClass._id }, (err, docs) => {
+            if (err) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: err.message,
+              })
+            }
+
+            return res.status(StatusCodes.OK).json({
+              success: true,
+              deleteClass: deletedClass._id,
+            })
+          })
         })
       }
     )

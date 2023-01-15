@@ -493,7 +493,7 @@ const Summaries = () => {
               sortingOrder={["desc", "asc"]}
               initialState={{
                 sorting: {
-                  sortModel: [{ field: "updated", sort: "asc" }],
+                  sortModel: [{ field: "updated", sort: "desc" }],
                 },
               }}
               components={{ Toolbar: DataGridCustomToolbar }}

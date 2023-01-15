@@ -921,7 +921,6 @@ const Assignments = () => {
                       <FormControl sx={{ width: "650px" }}>
                         {userRole === "Teacher" && (
                           <Select
-                            multiple
                             value={className}
                             onChange={handleSelectChange}
                             variant="standard"
