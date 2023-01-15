@@ -210,13 +210,16 @@ const Assignments = () => {
         url: `http://localhost:5000/assignments/${userId}`,
         params: {
           status: value,
+          userRole,
         },
       })
         .then((res) => {
           console.log(res)
           setAssignmentsData(true)
-          setClasses(res.data.classes)
           setAssignments(res.data.assignments)
+          if (userRole === "Teacher") {
+            setClasses(res.data.classes)
+          }
         })
         .catch((err) => console.log(err))
     }

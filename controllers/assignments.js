@@ -9,7 +9,7 @@ const { Try } = require("@mui/icons-material")
 const getAllAssignments = (req, res) => {
   try {
     const { id: userId } = req.params
-    const { status } = req.query
+    const { status, userRole } = req.query
     User.findById(userId, (err, user) => {
       if (err) {
         return res.status(StatusCodes.NOT_FOUND).json({
@@ -18,24 +18,17 @@ const getAllAssignments = (req, res) => {
         })
       }
 
-      Class.find({ teacher: user._id, status: "Active" }, (err, classes) => {
-        if (err) {
-          return res.status(StatusCodes.NOT_FOUND).json({
-            success: false,
-            err: err.message,
-          })
-        }
-
-        const readyToGoClasses = classes.map((sClass) => {
-          return {
-            id: sClass._id,
-            name: sClass.name,
-          }
+      if (userRole !== user.role) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: "Something went wrong in the authentication process...",
         })
+      }
 
+      if (userRole === "Student") {
         if (status === "Assigned") {
           Assignments.find(
-            { teacher: user._id },
+            { classes: { $in: user.classes } },
             null,
             { sort: { updatedAt: -1 } },
             (err, docs) => {
@@ -48,14 +41,13 @@ const getAllAssignments = (req, res) => {
 
               res.status(StatusCodes.OK).json({
                 success: true,
-                classes: readyToGoClasses,
                 assignments: docs,
               })
             }
           )
         } else {
           Assignments.find(
-            { teacher: user._id, status: status },
+            { classes: { $in: user.classes }, status: status },
             null,
             { sort: { updatedAt: -1 } },
             (err, docs) => {
@@ -68,13 +60,75 @@ const getAllAssignments = (req, res) => {
 
               res.status(StatusCodes.OK).json({
                 success: true,
-                classes: readyToGoClasses,
                 assignments: docs,
               })
             }
           )
         }
-      })
+      } else if (userRole === "Teacher") {
+        Class.find({ teacher: user._id, status: "Active" }, (err, classes) => {
+          if (err) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+              success: false,
+              err: err.message,
+            })
+          }
+
+          const readyToGoClasses = classes.map((sClass) => {
+            return {
+              id: sClass._id,
+              name: sClass.name,
+            }
+          })
+
+          if (status === "Assigned") {
+            Assignments.find(
+              { teacher: user._id },
+              null,
+              { sort: { updatedAt: -1 } },
+              (err, docs) => {
+                if (err) {
+                  return res.status(StatusCodes.NOT_FOUND).json({
+                    success: false,
+                    err: err.message,
+                  })
+                }
+
+                res.status(StatusCodes.OK).json({
+                  success: true,
+                  classes: readyToGoClasses,
+                  assignments: docs,
+                })
+              }
+            )
+          } else {
+            Assignments.find(
+              { teacher: user._id, status: status },
+              null,
+              { sort: { updatedAt: -1 } },
+              (err, docs) => {
+                if (err) {
+                  return res.status(StatusCodes.NOT_FOUND).json({
+                    success: false,
+                    err: err.message,
+                  })
+                }
+
+                res.status(StatusCodes.OK).json({
+                  success: true,
+                  classes: readyToGoClasses,
+                  assignments: docs,
+                })
+              }
+            )
+          }
+        })
+      } else {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          err: "Something went wrong please try again later...",
+        })
+      }
     })
   } catch (err) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({

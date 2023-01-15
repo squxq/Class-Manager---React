@@ -323,6 +323,9 @@ const Classes = () => {
         console.log(res.data.classes)
         console.log(res.data.classes)
         setAllClasses(res.data.classes)
+        setStudentsArray([])
+        setStudentsId([])
+        setClassName("")
       })
       .catch(async (err) => {
         try {
@@ -940,7 +943,10 @@ const Classes = () => {
                   style={{ margin: "15px", width: "100%" }}
                 />
                 <FormControl>
-                  <RadioGroup defaultValue="Active" name="radio-buttons-group">
+                  <RadioGroup
+                    defaultValue={studentsStatus}
+                    name="radio-buttons-group"
+                  >
                     <FormControlLabel
                       value="Active"
                       control={<Radio />}

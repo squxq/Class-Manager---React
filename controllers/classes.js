@@ -84,7 +84,7 @@ const createClass = async (req, res) => {
               }),
             },
           },
-          async (err, users) => {
+          async (err, students) => {
             if (err) {
               return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
                 success: false,
@@ -95,7 +95,7 @@ const createClass = async (req, res) => {
               name,
               status,
               teacher: user._id,
-              students: users,
+              students: students,
             })
 
             if (!newClass) {
@@ -105,17 +105,30 @@ const createClass = async (req, res) => {
               })
             }
 
-            const docs = await Class.find({ teacher: user._id })
+            User.updateMany(
+              { _id: { $in: students.map((student) => student._id) } },
+              { $push: { classes: newClass._id } },
+              async (err, newStudentsClass) => {
+                if (err) {
+                  return res.status(StatusCodes.NOT_FOUND).json({
+                    success: false,
+                    err: err.message,
+                  })
+                }
 
-            const classes = classRewrite(docs)
+                const docs = await Class.find({ teacher: user._id })
 
-            const total = await Class.count({ teacher: user._id })
+                const classes = classRewrite(docs)
 
-            res.status(StatusCodes.CREATED).json({
-              success: true,
-              classes,
-              total,
-            })
+                const total = await Class.count({ teacher: user._id })
+
+                res.status(StatusCodes.CREATED).json({
+                  success: true,
+                  classes,
+                  total,
+                })
+              }
+            )
           }
         )
       } catch (err) {
@@ -307,6 +320,8 @@ const getAllStudents = async (req, res) => {
         }
       })
 
+      console.log(students)
+
       res.status(StatusCodes.OK).json({
         success: true,
         students,
@@ -360,19 +375,36 @@ const deleteStudent = async (req, res) => {
             })
           }
 
-          const students = selectedClass.students.map((student) => {
-            return {
-              id: student._id,
-              firstName: student.firstname,
-              lastName: student.lastname,
-              email: student.email,
-            }
-          })
+          User.findOneAndUpdate(
+            { _id: studentId },
+            {
+              $pull: {
+                classes: classId,
+              },
+            },
+            (err, deletedStudent) => {
+              if (err) {
+                return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                  success: false,
+                  err: err.message,
+                })
+              }
 
-          res.status(StatusCodes.OK).json({
-            success: true,
-            students,
-          })
+              const students = selectedClass.students.map((student) => {
+                return {
+                  id: student._id,
+                  firstName: student.firstname,
+                  lastName: student.lastname,
+                  email: student.email,
+                }
+              })
+
+              res.status(StatusCodes.OK).json({
+                success: true,
+                students,
+              })
+            }
+          )
         }
       )
     })
@@ -417,26 +449,37 @@ const patchClass = (req, res) => {
               })
             }
 
-            console.log(updatedClass)
+            User.updateMany(
+              { _id: { $in: docs.map((doc) => doc._id) } },
+              { $push: { classes: mongoose.Types.ObjectId(classId) } },
+              (err, updatedStudents) => {
+                if (err) {
+                  return res.status(StatusCodes.NOT_FOUND).json({
+                    success: false,
+                    err: err.message,
+                  })
+                }
 
-            const students = updatedClass.students.map((student) => {
-              return {
-                id: student._id,
-                firstName: student.firstname,
-                lastName: student.lastname,
-                email: student.email,
+                const students = updatedClass.students.map((student) => {
+                  return {
+                    id: student._id,
+                    firstName: student.firstname,
+                    lastName: student.lastname,
+                    email: student.email,
+                  }
+                })
+
+                res.status(StatusCodes.OK).json({
+                  success: true,
+                  class: {
+                    name: updatedClass.name,
+                    status: updatedClass.status,
+                    students: students,
+                  },
+                  total: students.length,
+                })
               }
-            })
-
-            res.status(StatusCodes.OK).json({
-              success: true,
-              class: {
-                name: updatedClass.name,
-                status: updatedClass.status,
-                students: students,
-              },
-              total: students.length,
-            })
+            )
           }
         )
       }
@@ -478,10 +521,31 @@ const deleteClass = (req, res) => {
               })
             }
 
-            return res.status(StatusCodes.OK).json({
-              success: true,
-              deleteClass: deletedClass._id,
-            })
+            User.updateMany(
+              {
+                _id: {
+                  $in: deletedClass.students.map((student) => student._id),
+                },
+              },
+              {
+                $pull: {
+                  classes: deletedClass._id,
+                },
+              },
+              (err, updatedUsers) => {
+                if (err) {
+                  return res.status(StatusCodes.NOT_FOUND).json({
+                    success: false,
+                    err: err.message,
+                  })
+                }
+
+                return res.status(StatusCodes.OK).json({
+                  success: true,
+                  deleteClass: deletedClass._id,
+                })
+              }
+            )
           })
         })
       }
