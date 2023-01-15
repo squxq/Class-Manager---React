@@ -18,7 +18,7 @@ const getAllAssignments = (req, res) => {
         })
       }
 
-      Class.find({ teacher: user._id }, (err, classes) => {
+      Class.find({ teacher: user._id, status: "Active" }, (err, classes) => {
         if (err) {
           return res.status(StatusCodes.NOT_FOUND).json({
             success: false,

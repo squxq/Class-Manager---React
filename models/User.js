@@ -44,6 +44,9 @@ const UserSchema = new mongoose.Schema(
         message: ["{VALUE} is not a valid role."],
       },
     },
+    classes: {
+      type: Array,
+    },
   },
   { timestamps: true }
 )

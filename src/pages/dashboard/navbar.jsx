@@ -53,15 +53,17 @@ const Navbar = ({ data, userRole, userName }) => {
     switch (newValue) {
       case "Calendar":
         navigate(`/calendar/${userId}`)
+        setValue(newValue)
         break
       case "Assignments":
         navigate(`/assignments/${userId}`)
+        setValue(newValue)
         break
       case "Grades":
         navigate(`/grades/${userId}`)
+        setValue(newValue)
         break
     }
-    setValue(newValue)
   }
 
   return (

@@ -20,7 +20,7 @@ import {
   FormControlLabel,
   InputAdornment,
 } from "@mui/material"
-import { FilterListOutlined, PeopleAlt } from "@mui/icons-material"
+import { FilterListOutlined, PeopleAlt, Delete } from "@mui/icons-material"
 import {
   DataGrid,
   GridToolbarFilterButton,
@@ -29,6 +29,7 @@ import {
 import { Search, Add } from "@mui/icons-material"
 import { GridToolbarContainer, GridToolbarExport } from "@mui/x-data-grid"
 import { styled } from "@mui/system"
+import { getAllByTestId } from "@testing-library/react"
 
 const customStyles = {
   content: {
@@ -61,18 +62,32 @@ const classStyles = {
   overlay: { zIndex: 1000, backgroundColor: "rgb(23,25,35, 0.4)" },
 }
 
-const ClassCard = ({ classId, name, status, students, customClickEvent }) => {
+const ClassCard = ({
+  classId,
+  name,
+  status,
+  students,
+  customClickEvent,
+  handleDeleteClass,
+}) => {
   return (
     <Card
       sx={{
         backgroundImage: "none",
-        backgroundColor: "#171923",
         borderRadius: "0.55rem",
         borderColor: "#3AAFA9",
         borderWidth: "2px",
         margin: "0rem 5rem 2rem 5rem",
         cursor: "pointer",
-        maxHeight: "325px",
+        maxHeight: "250px",
+        minHeight: "250px",
+        backgroundColor: "#171923",
+        boxShadow: "0 1px 2px rgba(58, 175, 169, 0.7)",
+        transition: "* 0.3s ease-in-out",
+
+        "&:hover": {
+          boxShadow: "0 5px 15px rgba(58, 175, 169, 0.7)",
+        },
       }}
     >
       <CardActionArea
@@ -123,7 +138,28 @@ const ClassCard = ({ classId, name, status, students, customClickEvent }) => {
               {students}
             </Typography>
           </Box>
-          <Typography></Typography>
+          <Box
+            sx={{
+              justifyContent: "center",
+              alignContent: "center",
+              display: "flex",
+              height: "100%",
+            }}
+          >
+            <IconButton
+              sx={{
+                height: "3rem",
+                width: "3rem",
+                color: "#f6f6f6",
+                "&:hover": {
+                  backgroundColor: "rgba(58, 175, 169, 0.4)",
+                },
+              }}
+              onClick={(event) => handleDeleteClass(event, classId)}
+            >
+              <Delete />
+            </IconButton>
+          </Box>
         </CardContent>
       </CardActionArea>
     </Card>
@@ -170,7 +206,7 @@ const CssTextField = styled(TextField)({
 const DataGridCustomToolbar = ({
   searchInput,
   setSearchInput,
-  setAllStudents,
+  setClassStudents,
   setSearchParams,
   searchParams,
   handleStudentClick,
@@ -226,7 +262,7 @@ const DataGridCustomToolbar = ({
                       })
                         .then((res) => {
                           console.log(res)
-                          setAllStudents(res.data.students)
+                          setClassStudents(res.data.students)
                           setSearchInput("")
                         })
                         .catch((err) => console.log(err))
@@ -260,6 +296,7 @@ const Classes = () => {
         .then((res) => {
           setClassData(true)
           setAllClasses(res.data.classes)
+          setClassStudents([])
         })
         .catch((err) => console.log(err))
     }
@@ -327,7 +364,7 @@ const Classes = () => {
         setButtonsOpen(false)
         setSelectedClassModal(true)
         setSelectedClassData(res.data.class)
-        setAllStudents(res.data.class.students)
+        setClassStudents(res.data.class.students)
         setRowCount(res.data.total)
         setSearchParams({ id })
         setClassId(id)
@@ -339,6 +376,7 @@ const Classes = () => {
   const [allStudents, setAllStudents] = useState([])
 
   const getAllStudents = async () => {
+    const newStudents = []
     await axios({
       method: "get",
       url: `http://localhost:5000/students`,
@@ -346,9 +384,15 @@ const Classes = () => {
       .then((res) => {
         console.log(res)
         setAllStudents(res.data.students)
+        newStudents.push(...res.data.students)
+        console.log(allStudents)
       })
       .catch((err) => console.log(err))
+
+    return newStudents
   }
+
+  const [classStudents, setClassStudents] = useState([])
 
   const handleRemoveStudent = async (e, params) => {
     await axios({
@@ -360,7 +404,7 @@ const Classes = () => {
     })
       .then((res) => {
         console.log(res)
-        setAllStudents(res.data.students)
+        setClassStudents(res.data.students)
       })
       .catch((err) => console.log(err))
   }
@@ -379,12 +423,61 @@ const Classes = () => {
             (student) => ` ${student.firstName} ${student.lastName}`
           )
         )
+        setStudentsId(res.data.class.students.map((student) => student._id))
       })
       .catch((err) => console.log(err))
     setSelectedStudent(true)
   }
 
   const [selectedStudent, setSelectedStudent] = useState(false)
+
+  const handlePatchClass = async () => {
+    console.log(className, studentsStatus, studentsId)
+    await axios({
+      method: "patch",
+      url: `http://localhost:5000/class/${classId}`,
+      data: {
+        name: className,
+        status: studentsStatus,
+        students: studentsId,
+      },
+    })
+      .then((res) => {
+        console.log(res)
+        setClassName(res.data.class.name)
+        setStudentsStatus(res.data.class.status)
+        setClassStudents(res.data.class.students)
+        setStudentsId(res.data.class.students.map((student) => student._id))
+        setRowCount(res.data.total)
+        setSelectedStudent(false)
+      })
+      .catch((err) => console.log(err))
+  }
+
+  const [allClassStudents, setAllClassStudents] = useState([])
+
+  const handleDeleteClass = async (event, classId) => {
+    event.stopPropagation()
+    event.preventDefault()
+
+    await axios({
+      method: "delete",
+      url: `http://localhost:5000/class/${classId}`,
+    })
+      .then((res) => {
+        console.log(res)
+        allClasses.find((singleClass, index) => {
+          console.log(singleClass.key, res.data.deleteClass)
+          if (singleClass.key === res.data.deleteClass) {
+            console.log(singleClass, index)
+            allClasses.splice(index, 1)
+            console.log(...allClasses)
+            setAllClasses([...allClasses])
+          }
+        })
+      })
+      .catch((err) => console.log(err))
+  }
 
   switch (classData) {
     case false:
@@ -451,7 +544,7 @@ const Classes = () => {
                 display: "grid",
                 justifyContent: "space-between",
                 backgroundColor: "#171923",
-                height: "74.9vh",
+                height: "74.3vh",
               }}
               gridTemplateColumns="repeat(3, minmax(0, 1fr))"
               rowGap="10px"
@@ -466,6 +559,7 @@ const Classes = () => {
                     status={status}
                     students={students}
                     customClickEvent={handleClassClick}
+                    handleDeleteClass={handleDeleteClass}
                   />
                 )
               })}
@@ -487,6 +581,7 @@ const Classes = () => {
               setStudents(false)
               setStudentsArray([])
               setStudentsId([])
+              setAllStudents([])
             }}
             style={customStyles}
             contentLabel="Example Modal"
@@ -606,11 +701,21 @@ const Classes = () => {
           </Modal>
           <Modal
             isOpen={selectedClassModal}
-            onRequestClose={() => {
-              setButtonsOpen(true)
-              setSelectedClassModal(false)
-              setSearchParams({})
-              setClassId("")
+            onRequestClose={async () => {
+              await axios({
+                method: "get",
+                url: `http://localhost:5000/classes/${id}`,
+              })
+                .then((res) => {
+                  setClassData(true)
+                  setAllClasses(res.data.classes)
+                  setClassStudents([])
+                  setButtonsOpen(true)
+                  setSelectedClassModal(false)
+                  setSearchParams({})
+                  setClassId("")
+                })
+                .catch((err) => console.log(err))
             }}
             style={classStyles}
           >
@@ -689,7 +794,7 @@ const Classes = () => {
               >
                 <DataGrid
                   getRowId={(row) => row.id}
-                  rows={allStudents || []}
+                  rows={classStudents || []}
                   columns={[
                     {
                       field: "firstName",
@@ -745,7 +850,7 @@ const Classes = () => {
                     toolbar: {
                       searchInput,
                       setSearchInput,
-                      setAllStudents,
+                      setClassStudents,
                       setSearchParams,
                       searchParams,
                       handleStudentClick,
@@ -808,6 +913,10 @@ const Classes = () => {
             isOpen={selectedStudent}
             onRequestClose={() => {
               setSelectedStudent(false)
+              setClassName("")
+              setStudentsId([])
+              setStudentsArray([])
+              setStudentsStatus("Active")
             }}
             style={customStyles}
           >
@@ -861,10 +970,17 @@ const Classes = () => {
                   label={
                     createClassErrors["students"]
                       ? createClassErrors["students"]
-                      : "Select students for your class."
+                      : "Add students to your class"
                   }
                   value={studentsArray}
-                  onClick={() => {
+                  onClick={async () => {
+                    const newStudents = await getAllStudents()
+
+                    const newArray = newStudents.filter(
+                      (elem) => !classStudents.find(({ id }) => elem.id === id)
+                    )
+
+                    setAllClassStudents(newArray)
                     setStudents(true)
                   }}
                   style={{
@@ -886,7 +1002,7 @@ const Classes = () => {
                       }}
                       subheader={<li />}
                     >
-                      {allStudents.map(({ id, firstName, lastName }) => {
+                      {allClassStudents.map(({ id, firstName, lastName }) => {
                         return (
                           <ListItemButton
                             key={id}
@@ -917,7 +1033,7 @@ const Classes = () => {
             <div style={{ display: "flex", flexDirection: "row" }}>
               <Button
                 variant="outlined"
-                onClick={handleSubmit}
+                onClick={handlePatchClass}
                 style={{ marginTop: "20px", width: "100%" }}
               >
                 Update Class

@@ -433,7 +433,9 @@ const Summaries = () => {
           >
             <DataGrid
               ref={datagridRef}
-              getRowId={(row) => row.id}
+              getRowId={(row) => {
+                return row.id
+              }}
               rows={summaries}
               columns={[
                 {

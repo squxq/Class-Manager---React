@@ -56,6 +56,10 @@ const getAllSummaries = async (req, res) => {
           }
         })
 
+        if (summaries.includes(undefined)) {
+          summaries.pop()
+        }
+
         return res.status(StatusCodes.OK).json({
           success: true,
           classes,
@@ -83,6 +87,7 @@ const createSummary = async (req, res) => {
           err: err.message,
         })
       }
+      console.log(user)
       Class.find({ _id: classId }, (err, focusedClass) => {
         if (err) {
           return res.status(StatusCodes.NOT_FOUND).json({
@@ -90,6 +95,7 @@ const createSummary = async (req, res) => {
             err: err.message,
           })
         }
+        console.log(focusedClass)
         if (
           JSON.stringify(focusedClass[0].teacher).match(/"(.*?)"/)[1] ===
           JSON.stringify(user[0]._id).match(/"(.*?)"/)[1]
@@ -113,12 +119,20 @@ const createSummary = async (req, res) => {
               success: true,
               summary: {
                 id: summary._id,
-                created: summary.createdAt,
+                created: `${JSON.stringify(summary.createdAt)
+                  .split("T")[0]
+                  .slice(1)} - ${
+                  JSON.stringify(summary.createdAt).split("T")[1].split(".")[0]
+                }`,
                 state: summary.state,
-                class: summary._id,
+                class: focusedClass[0].name,
                 number: summary.number,
                 content: summary.content,
-                updated: summary.updatedAt,
+                updated: `${JSON.stringify(summary.updatedAt)
+                  .split("T")[0]
+                  .slice(1)} - ${
+                  JSON.stringify(summary.updatedAt).split("T")[1].split(".")[0]
+                }`,
               },
             })
           })

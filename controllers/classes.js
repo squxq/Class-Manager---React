@@ -375,6 +375,98 @@ const deleteStudent = async (req, res) => {
   }
 }
 
+const patchClass = (req, res) => {
+  try {
+    const { id: classId } = req.params
+    const { name, status, students } = req.body
+
+    console.log(students)
+
+    User.find(
+      {
+        _id: {
+          $in: students.map((student) => mongoose.Types.ObjectId(student)),
+        },
+      },
+      (err, docs) => {
+        if (err) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: err.message,
+          })
+        }
+
+        Class.findOneAndUpdate(
+          { _id: classId },
+          { name, status, $push: { students: { $each: docs } } },
+          { new: true },
+          (err, updatedClass) => {
+            if (err) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: err.message,
+              })
+            }
+
+            console.log(updatedClass)
+
+            const students = updatedClass.students.map((student) => {
+              return {
+                id: student._id,
+                firstName: student.firstname,
+                lastName: student.lastname,
+                email: student.email,
+              }
+            })
+
+            res.status(StatusCodes.OK).json({
+              success: true,
+              class: {
+                name: updatedClass.name,
+                status: updatedClass.status,
+                students: students,
+              },
+              total: students.length,
+            })
+          }
+        )
+      }
+    )
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
+const deleteClass = (req, res) => {
+  try {
+    const { id } = req.params
+    Class.findOneAndDelete(
+      { _id: mongoose.Types.ObjectId(id) },
+      (err, deletedClass) => {
+        if (err) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: err.message,
+          })
+        }
+
+        return res.status(StatusCodes.OK).json({
+          success: true,
+          deleteClass: deletedClass._id,
+        })
+      }
+    )
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
 module.exports = {
   getAllClasses,
   createClass,
@@ -382,4 +474,6 @@ module.exports = {
   getAllStudents,
   getClassStudents,
   deleteStudent,
+  patchClass,
+  deleteClass,
 }
