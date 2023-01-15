@@ -21,14 +21,21 @@ const classRewrite = (docs) => {
 
 const getAllClasses = async (req, res) => {
   try {
-    User.findById(req.params.id, (err, user) => {
+    const { id: userId } = req.params
+    User.find({ _id: userId, role: "Teacher" }, (err, user) => {
       if (err) {
         return res.status(StatusCodes.NOT_FOUND).json({
           success: false,
-          err: `User not found.`,
+          err: err.message,
         })
       }
-      Class.find({ teacher: user._id }, async (err, docs) => {
+      if (!user[0]) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: `User is not a teacher.`,
+        })
+      }
+      Class.find({ teacher: user[0]._id }, async (err, docs) => {
         try {
           if (err) {
             return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({

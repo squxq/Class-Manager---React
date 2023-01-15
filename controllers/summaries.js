@@ -5,23 +5,22 @@ const User = require(`../models/User`)
 
 const getAllSummaries = async (req, res) => {
   try {
-    const { id: teacherId } = req.params
-    Class.find({ teacher: teacherId }, (err, docs) => {
+    const { id: userId } = req.params
+    User.find({ _id: userId, role: "Teacher" }, (err, user) => {
       if (err) {
         return res.status(StatusCodes.NOT_FOUND).json({
           success: false,
           err: err.message,
         })
       }
+      if (!user[0]) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          success: false,
+          err: "User is not a teacher",
+        })
+      }
 
-      const classes = docs.map((doc) => {
-        return {
-          id: doc._id,
-          name: doc.name,
-        }
-      })
-
-      Summaries.find({ teacher: teacherId }, (err, docs) => {
+      Class.find({ teacher: userId }, (err, docs) => {
         if (err) {
           return res.status(StatusCodes.NOT_FOUND).json({
             success: false,
@@ -29,39 +28,55 @@ const getAllSummaries = async (req, res) => {
           })
         }
 
-        const summaries = docs
-          .map((doc) => {
-            for (let singleClass of classes) {
-              if (
-                JSON.stringify(singleClass.id).match(/"(.*?)"/)[1] ===
-                JSON.stringify(doc.class).match(/"(.*?)"/)[1]
-              ) {
-                return {
-                  id: doc._id,
-                  created: `${JSON.stringify(doc.createdAt)
-                    .split("T")[0]
-                    .slice(1)} - ${
-                    JSON.stringify(doc.createdAt).split("T")[1].split(".")[0]
-                  }`,
-                  state: doc.state,
-                  class: singleClass.name,
-                  number: doc.number,
-                  content: doc.content,
-                  updated: `${JSON.stringify(doc.updatedAt)
-                    .split("T")[0]
-                    .slice(1)} - ${
-                    JSON.stringify(doc.updatedAt).split("T")[1].split(".")[0]
-                  }`,
+        const classes = docs.map((doc) => {
+          return {
+            id: doc._id,
+            name: doc.name,
+          }
+        })
+
+        Summaries.find({ teacher: userId }, (err, docs) => {
+          if (err) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+              success: false,
+              err: err.message,
+            })
+          }
+
+          const summaries = docs
+            .map((doc) => {
+              for (let singleClass of classes) {
+                if (
+                  JSON.stringify(singleClass.id).match(/"(.*?)"/)[1] ===
+                  JSON.stringify(doc.class).match(/"(.*?)"/)[1]
+                ) {
+                  return {
+                    id: doc._id,
+                    created: `${JSON.stringify(doc.createdAt)
+                      .split("T")[0]
+                      .slice(1)} - ${
+                      JSON.stringify(doc.createdAt).split("T")[1].split(".")[0]
+                    }`,
+                    state: doc.state,
+                    class: singleClass.name,
+                    number: doc.number,
+                    content: doc.content,
+                    updated: `${JSON.stringify(doc.updatedAt)
+                      .split("T")[0]
+                      .slice(1)} - ${
+                      JSON.stringify(doc.updatedAt).split("T")[1].split(".")[0]
+                    }`,
+                  }
                 }
               }
-            }
-          })
-          .filter(Boolean)
+            })
+            .filter(Boolean)
 
-        return res.status(StatusCodes.OK).json({
-          success: true,
-          classes,
-          summaries,
+          return res.status(StatusCodes.OK).json({
+            success: true,
+            classes,
+            summaries,
+          })
         })
       })
     })
