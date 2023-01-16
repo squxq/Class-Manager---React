@@ -45,7 +45,8 @@
     "react-scroll": "^1.8.9",
     "react-window": "^1.8.8",
     "styled-components": "^5.3.6",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "vite": "vite --open",

@@ -1,7 +1,8 @@
 const router = require(`express`).Router()
 
-const { getEditor } = require(`../controllers/editor`)
+const { getEditor, createFile } = require(`../controllers/editor`)
 
 router.get(`/editor/:id`, getEditor)
+router.post(`/editor/:id`, createFile)
 
 module.exports = router
