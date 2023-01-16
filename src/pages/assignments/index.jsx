@@ -498,7 +498,7 @@ const Assignments = () => {
         <Box sx={{ m: "1.5rem 2.5rem" }}>
           <Box margin="2rem">
             <Typography variant="h4" color="#f6f6f6">
-              See your lisdt of assignments below.
+              See your list of assignments below.
             </Typography>
             <Box
               sx={{

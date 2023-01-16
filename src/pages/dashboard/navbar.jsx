@@ -69,9 +69,11 @@ const Navbar = ({ data, userRole, userName }) => {
   return (
     <AppBar
       sx={{
-        position: `static`,
+        position: `relative`,
         background: `none`,
         boxShadow: `none`,
+        zIndex: 1400,
+        // boxShadow: "0 4px 2px -2px rgba(0,0,0,.2)",
       }}
     >
       <Toolbar sx={{ justifyContent: `space-between`, marginTop: "5px" }}>
@@ -199,10 +201,15 @@ const Navbar = ({ data, userRole, userName }) => {
                   fontWeight="bold"
                   fontSize="0.85rem"
                   sx={{ color: "#f6f6f6" }}
+                  noWrap={true}
                 >
                   {userName}
                 </Typography>
-                <Typography fontSize="0.75rem" sx={{ color: "#f6f6f6" }}>
+                <Typography
+                  fontSize="0.75rem"
+                  sx={{ color: "#f6f6f6" }}
+                  noWrap={true}
+                >
                   {userRole === "Student" ? "Student" : "Teacher"}
                 </Typography>
               </Box>

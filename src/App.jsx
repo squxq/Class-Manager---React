@@ -11,6 +11,7 @@ const Calendar = lazy(() => import("./pages/calendar"))
 const Classes = lazy(() => import("./pages/classes"))
 const Summaries = lazy(() => import("./pages/summaries"))
 const Assignments = lazy(() => import("./pages/assignments"))
+const Editor = lazy(() => import("./pages/editor"))
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
             <Route path="/classes/:id" element={<Classes />} exact />
             <Route path="/summaries/:id" element={<Summaries />} exact />
             <Route path="/assignments/:id" element={<Assignments />} exact />
+            <Route path="/editor/:id" element={<Editor />} exact />
           </Route>
         </Routes>
       </Suspense>

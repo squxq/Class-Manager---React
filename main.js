@@ -58,6 +58,10 @@ app.use(`/`, summariesRouter)
 const assignmentsRouter = require(`./routes/assignments.js`)
 app.use(`/`, assignmentsRouter)
 
+// assignments
+const editorRouter = require(`./routes/editor.js`)
+app.use(`/`, editorRouter)
+
 // setting up the server
 const port = process.env.PORT || 5000
 

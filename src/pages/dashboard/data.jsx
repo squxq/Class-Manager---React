@@ -15,6 +15,7 @@ import {
   SchoolOutlined,
   SettingsOutlined,
   Assignment,
+  Calculate,
 } from "@mui/icons-material"
 
 const navItems = [
@@ -47,8 +48,8 @@ const navItems = [
     icon: <PointOfSaleOutlined />,
   },
   {
-    text: "Daily",
-    icon: <TodayOutlined />,
+    text: "Editor",
+    icon: <Calculate />,
   },
   {
     text: "Breakdown",

@@ -73,6 +73,7 @@ const Sidebar = ({ drawerWidth, userId, userRole, userName }) => {
             borderWidth: 0,
             width: drawerWidth,
           },
+          boxShadow: 3,
         }}
       >
         <Box width="100%">
