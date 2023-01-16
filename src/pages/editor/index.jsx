@@ -120,21 +120,21 @@ const Editor = () => {
             variant="permanent"
             anchor="right"
             sx={{
-              width: "200px",
+              width: "250px",
               flexShrink: 0,
               "& .MuiDrawer-paper": {
                 color: "#f6f6f6",
                 backgroundColor: "#171923",
                 boxSizing: "border-box",
                 borderWidth: 0,
-                width: "200px",
+                width: "250px",
               },
             }}
           >
             <form
               style={{
                 height: "100vh",
-                width: "200px",
+                width: "250px",
                 maxWidth: "100%",
                 textAlign: "center",
                 position: "relative",
