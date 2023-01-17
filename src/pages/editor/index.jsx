@@ -9,17 +9,49 @@ import {
   ListItemText,
   ListItemIcon,
   Button,
+  Pagination,
+  PaginationItem,
 } from "@mui/material"
 import FlexBetween from "../dashboard/FlexBetween"
 import { FileCopy, ChevronLeftOutlined } from "@mui/icons-material"
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { read } from "xlsx"
 import axios from "axios"
+import {
+  DataGrid,
+  gridPageCountSelector,
+  gridPageSelector,
+  useGridApiContext,
+  useGridSelector,
+} from "@mui/x-data-grid"
+import DataGridCustomToolbar from "./custom-toolbar"
+
+const CustomPagination = ({ pageNames, pageCount, switchPage }) => {
+  const apiRef = useGridApiContext()
+
+  return (
+    <Pagination
+      variant="outlined"
+      color="secondary"
+      shape="rounded"
+      size="large"
+      count={pageCount}
+      onChange={switchPage}
+      renderItem={(item) => {
+        if (item.type === "page") {
+          item.page = pageNames[item.page - 1]
+        }
+        return <PaginationItem {...item} />
+      }}
+    />
+  )
+}
 
 const Editor = () => {
   const navigate = useNavigate()
   const [active, setActive] = useState("")
   const { id: userId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [dragActive, setDragActive] = useState(false)
 
@@ -82,6 +114,8 @@ const Editor = () => {
     })
       .then((res) => {
         console.log(res)
+
+        setEditorFileNames([...editorFileNames, res.data.file])
       })
       .catch((err) => console.log(err))
   }
@@ -108,6 +142,43 @@ const Editor = () => {
 
   const onButtonClick = (e) => {
     inputRef.current.click()
+  }
+
+  const [pageNames, setPageNames] = useState([])
+  const [pageCount, setPageCount] = useState(1)
+  const [sheet, setSheet] = useState([])
+  const [columns, setColumns] = useState([])
+
+  const getSingleSheet = async (id, sheet) => {
+    await axios({
+      method: "get",
+      url: `http://localhost:5000/file/${userId}`,
+      params: {
+        id: id,
+        sheet: sheet,
+      },
+    })
+      .then((res) => {
+        console.log(res)
+        setPageNames(res.data.pages.pagesnames)
+        setPageCount(res.data.pages.pagescount)
+        setColumns(res.data.columns)
+        setSheet(res.data.sheet)
+      })
+      .catch((err) => console.log(err))
+    return { id, sheet }
+  }
+
+  const handleFileClick = async (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    const params = await getSingleSheet(e.currentTarget.id, 1)
+    setSearchParams(params)
+  }
+
+  const switchPage = async (event, value) => {
+    const params = await getSingleSheet(searchParams.get("id"), value)
+    setSearchParams(params)
   }
 
   switch (editorData) {
@@ -201,10 +272,8 @@ const Editor = () => {
                           }}
                         >
                           <ListItemButton
-                            // onClick={() => {
-                            //   navigate(`/${lcText}/${userId}`)
-                            //   setActive(lcText)
-                            // }}
+                            onClick={handleFileClick}
+                            id={id}
                             sx={{
                               backgroundColor: "transparent",
                               // active === lcText ? "#3AAFA9" : "transparent",
@@ -258,6 +327,88 @@ const Editor = () => {
               )}
             </form>
           </Drawer>
+          <Box
+            margin="2rem 0rem 2rem 2rem"
+            height="86.3vh"
+            maxWidth="calc(100% - 250px - 4rem)"
+            minWidth="calc(100% - 250px - 4rem)"
+            sx={{
+              width: "90%",
+              display: "flex",
+              justifyContent: "center",
+              "& .MuiDataGrid-root": {
+                border: "none",
+                fontFamily: "Poppins",
+              },
+              "& .MuiDataGrid-cell": {
+                borderBottom: "none",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#171923",
+                color: "#f6f6f6",
+                borderBottom: "none",
+              },
+              "& .MuiDataGrid-virtualScroller": {
+                backgroundColor: "#171923",
+              },
+              "& .MuiDataGrid-Containeer": {
+                backgroundColor: "#f6f6f6",
+                color: "#f6f6f6",
+                borderTop: "none",
+              },
+              "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                color: `#f6f6f6`,
+              },
+              ".MuiButtonBase-root": {
+                color: "#f6f6f6",
+              },
+              ".MuiToolbar-root": {
+                color: "#f6f6f6",
+              },
+              ".MuiSvgIcon-root": {
+                color: "#f6f6f6",
+              },
+              ".MuiDataGrid-columnHeaderTitleContainer": {
+                borderColor: "#f6f6f6 !important",
+              },
+              ".MuiDataGrid-row": {
+                color: "#f6f6f6 !important",
+                fontSize: "0.9rem",
+              },
+              ".MuiDataGrid-selectedRowCount": {
+                color: "#171923 !important",
+                cursor: "default",
+              },
+            }}
+          >
+            <DataGrid
+              // ref={datagridRef}
+              getRowId={(row) => {
+                return row.id
+              }}
+              rows={sheet || []}
+              columns={columns}
+              rowsPerPageOptions={[]}
+              sortingOrder={["desc", "asc"]}
+              initialState={{
+                sorting: {
+                  sortModel: [{ field: "updated", sort: "desc" }],
+                },
+              }}
+              components={{
+                Toolbar: DataGridCustomToolbar,
+                Pagination: CustomPagination,
+              }}
+              componentsProps={{
+                pagination: {
+                  pageNames,
+                  pageCount,
+                  switchPage,
+                },
+              }}
+              pagination={true}
+            />
+          </Box>
         </Box>
       )
   }

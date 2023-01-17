@@ -11,7 +11,7 @@ const ExcelSchema = new mongoose.Schema(
       required: [true, "A Excel file must have a created date."],
     },
     sheets: {
-      type: Array,
+      type: Object,
       required: [true, "A Excel file must have at least one sheet."],
     },
     teacher: {
