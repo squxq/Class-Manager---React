@@ -40,8 +40,8 @@ const CustomPagination = ({ pageNames, pageCount, switchPage }) => {
       renderItem={(item) => {
         if (item.type === "page") {
           item.page = pageNames[item.page - 1]
+          return <PaginationItem {...item} />
         }
-        return <PaginationItem {...item} />
       }}
     />
   )
