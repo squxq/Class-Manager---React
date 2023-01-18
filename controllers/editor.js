@@ -137,8 +137,6 @@ const getSingleFile = (req, res) => {
   try {
     const { id: teacherId } = req.params
     const { id: fileId, sheet: sheetIndex } = req.query
-    console.log(fileId, sheetIndex)
-    console.log(sheetIndex)
     User.findById(teacherId, (err, user) => {
       if (err) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -160,7 +158,7 @@ const getSingleFile = (req, res) => {
             err: err.message,
           })
         }
-        if (!user) {
+        if (!file) {
           return res.status(StatusCodes.NOT_FOUND).json({
             success: false,
             err: "File not found...",
@@ -202,6 +200,7 @@ const getSingleFile = (req, res) => {
             pagescount: Object.keys(file.sheets).length,
           },
           sheet,
+          sheetname: Object.keys(file.sheets)[sheetIndex - 1],
           columns,
         })
       })
@@ -216,6 +215,111 @@ const getSingleFile = (req, res) => {
 
 const patchSheet = (req, res) => {
   try {
+    const { id: fileId } = req.params
+    const { addRowData: data } = req.body
+    const { sheetname } = req.query
+
+    console.log(Object.entries(data))
+
+    if (Object.entries(data).length === 0) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        err: `Please provide at least one value for the row...`,
+      })
+    }
+
+    const verificationArray = Object.values(data).filter((value) => !value)
+
+    if (verificationArray.length === 0) {
+      Excel.findById(fileId, async (err, file) => {
+        if (err) {
+          return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: err.message,
+          })
+        }
+        if (!file) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            success: false,
+            err: "File not found...",
+          })
+        }
+
+        const changes = {
+          id: mongoose.Types.ObjectId(),
+        }
+        Object.entries(data).forEach((pair) => {
+          changes[pair[0]] = pair[1]
+        })
+
+        Excel.findOneAndUpdate(
+          { _id: file._id },
+          {
+            $push: { [`sheets.${sheetname}`]: changes },
+          },
+          { new: true },
+          (err, result) => {
+            if (err) {
+              return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                err: err.message,
+              })
+            }
+            if (!result) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: "File not found...",
+              })
+            }
+
+            console.log(result)
+            let sheet = result.sheets[sheetname]
+
+            const columnsSet = new Set(
+              [].concat(
+                ...sheet.map((row) => {
+                  return [...Object.keys(row)]
+                })
+              )
+            )
+            sheet.push({
+              id: "insertId",
+              rows: "insert",
+            })
+
+            const columns = Array.from(columnsSet)
+              .map((column) => {
+                if (column !== "id") {
+                  return {
+                    field: column,
+                    headerName: column[0].toUpperCase() + column.substring(1),
+                    sortable: false,
+                    align: "center",
+                    editable: true,
+                  }
+                }
+              })
+              .filter(Boolean)
+
+            return res.status(StatusCodes.OK).json({
+              success: true,
+              pages: {
+                pagesnames: Object.keys(result.sheets),
+                pagescount: Object.keys(result.sheets).length,
+              },
+              sheet,
+              sheetname: sheetname,
+              columns,
+            })
+          }
+        )
+      })
+    } else {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: true,
+        err: `Data not valid...`,
+      })
+    }
   } catch (err) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,

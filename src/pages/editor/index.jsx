@@ -213,21 +213,23 @@ const Editor = () => {
         setPageCount(res.data.pages.pagescount)
         setColumns(res.data.columns)
         setSheet(res.data.sheet)
+
+        setSearchParams({ id, sheet, sheetname: res.data.sheetname })
       })
       .catch((err) => console.log(err))
-    return { id, sheet }
   }
 
   const handleFileClick = async (e) => {
     e.stopPropagation()
     e.preventDefault()
-    const params = await getSingleSheet(e.currentTarget.id, 1)
-    setSearchParams(params)
+    await getSingleSheet(e.currentTarget.id, 1)
   }
 
+  const [currentPage, setCurrentPage] = useState()
+
   const switchPage = async (event, value) => {
-    const params = await getSingleSheet(searchParams.get("id"), value)
-    setSearchParams(params)
+    const sheetName = event.currentTarget.textContent
+    await getSingleSheet(searchParams.get("id"), value)
   }
 
   const [addRowData, setAddRowData] = useState({})
@@ -242,16 +244,25 @@ const Editor = () => {
   }
 
   const handleAddRow = async (event) => {
-    const { if: fileId } = searchParams.get("id")
+    const fileId = searchParams.get("id")
+    const sheetname = searchParams.get("sheetname")
     await axios({
       method: "patch",
       url: `http://localhost:5000/file/${fileId}`,
       data: {
         addRowData,
       },
+      params: {
+        sheetname,
+      },
     })
       .then((res) => {
         console.log(res)
+        setPageNames(res.data.pages.pagesnames)
+        setPageCount(res.data.pages.pagescount)
+        setColumns(res.data.columns)
+        setSheet(res.data.sheet)
+        setAddRowData({})
       })
       .catch((err) => console.log(err))
   }
