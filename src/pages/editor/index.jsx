@@ -11,9 +11,10 @@ import {
   Button,
   Pagination,
   PaginationItem,
+  IconButton,
 } from "@mui/material"
 import FlexBetween from "../dashboard/FlexBetween"
-import { FileCopy, ChevronLeftOutlined } from "@mui/icons-material"
+import { FileCopy, ChevronLeftOutlined, Add } from "@mui/icons-material"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { read } from "xlsx"
 import axios from "axios"
@@ -25,6 +26,55 @@ import {
   useGridSelector,
 } from "@mui/x-data-grid"
 import DataGridCustomToolbar from "./custom-toolbar"
+import { styled } from "@mui/system"
+
+const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
+  border: 0,
+  color: "rgba(255,255,255,0.85)",
+  fontFamily: "Poppins",
+  WebkitFontSmoothing: "auto",
+  letterSpacing: "normal",
+  "& .MuiDataGrid-columnsContainer": {
+    backgroundColor: "#1d1d1d",
+  },
+  "& .MuiDataGrid-iconSeparator": {
+    display: "none",
+  },
+  "& .MuiDataGrid-columnHeader": {
+    borderRight: `1px solid #303030`,
+  },
+  "& .MuiDataGrid-columnsContainer, .MuiDataGrid-cell": {
+    borderTop: `1px solid #303030`,
+    borderBottom: 0,
+    borderRight: `1px solid #303030`,
+  },
+  "& .MuiDataGrid-cell": {
+    color: "rgba(255, 255, 255, 0.65)",
+  },
+  "& .MuiPaginationItem-root": {
+    borderRadius: 0,
+  },
+  "& .MuiDataGrid-columnHeaderTitle:hover": {
+    color: "#3AAFA9",
+  },
+  "& .MuiDataGrid-cellContent:hover": {
+    color: "#3AAFA9",
+  },
+  "& .MuiDataGrid-cell:hover": {
+    cursor: "pointer",
+  },
+  "& .MuiDataGrid-columnHeader:hover": {
+    cursor: "pointer",
+  },
+  "&.Mui-selected": {
+    backgroundColor: "rebeccapurple !important",
+    color: "yellow",
+    "&:hover": {
+      color: "#3AAFA9",
+      backgroundColor: "purple",
+    },
+  },
+}))
 
 const CustomPagination = ({ pageNames, pageCount, switchPage }) => {
   const apiRef = useGridApiContext()
@@ -32,7 +82,6 @@ const CustomPagination = ({ pageNames, pageCount, switchPage }) => {
   return (
     <Pagination
       variant="outlined"
-      color="secondary"
       shape="rounded"
       size="large"
       count={pageCount}
@@ -179,6 +228,32 @@ const Editor = () => {
   const switchPage = async (event, value) => {
     const params = await getSingleSheet(searchParams.get("id"), value)
     setSearchParams(params)
+  }
+
+  const [addRowData, setAddRowData] = useState({})
+
+  const handleCellEditCommit = (event, details) => {
+    if (event.id === "insertId") {
+      setAddRowData({
+        ...addRowData,
+        [event.field]: event.value,
+      })
+    }
+  }
+
+  const handleAddRow = async (event) => {
+    const { if: fileId } = searchParams.get("id")
+    await axios({
+      method: "patch",
+      url: `http://localhost:5000/file/${fileId}`,
+      data: {
+        addRowData,
+      },
+    })
+      .then((res) => {
+        console.log(res)
+      })
+      .catch((err) => console.log(err))
   }
 
   switch (editorData) {
@@ -381,13 +456,59 @@ const Editor = () => {
               },
             }}
           >
-            <DataGrid
-              // ref={datagridRef}
+            <StyledDataGrid
+              rowHeight={30}
               getRowId={(row) => {
                 return row.id
               }}
+              disableColumnMenu={true}
               rows={sheet || []}
-              columns={columns}
+              columns={[
+                {
+                  field: "rows",
+                  headerName: "",
+                  sortable: false,
+                  width: 50,
+                  align: "center",
+                  renderCell: (index) => {
+                    if (index.value === "insert") {
+                      return (
+                        <Box className="MuiDataGrid-cellContent">
+                          <IconButton
+                            sx={{ padding: 0, marginLeft: "1px" }}
+                            onClick={handleAddRow}
+                          >
+                            <Add sx={{ "&:hover": { color: "#3AAFA9" } }} />
+                          </IconButton>
+                        </Box>
+                      )
+                    }
+                    return (
+                      <Box className="MuiDataGrid-cellContent">
+                        <Typography align="center">
+                          {index.api.getRowIndex(index.row.id) + 1}
+                        </Typography>
+                      </Box>
+                    )
+                  },
+                },
+                ...columns,
+                {
+                  field: "columns",
+                  headerName: "",
+                  sortable: false,
+                  minWidth: 10,
+                  width: 45,
+                  align: "center",
+                  renderHeader: () => (
+                    <Box>
+                      <IconButton sx={{ padding: 0 }}>
+                        <Add sx={{ "&:hover": { color: "#3AAFA9" } }} />
+                      </IconButton>
+                    </Box>
+                  ),
+                },
+              ]}
               rowsPerPageOptions={[]}
               sortingOrder={["desc", "asc"]}
               initialState={{
@@ -407,6 +528,7 @@ const Editor = () => {
                 },
               }}
               pagination={true}
+              onCellEditCommit={handleCellEditCommit}
             />
           </Box>
         </Box>

@@ -103,38 +103,19 @@ const createFile = (req, res) => {
               return Object.assign(obj, { [item.name]: values })
             }, {})
 
-            try {
-              const fileCreatedDate = workbook.Props.CreatedDate
-              const newFile = await Excel.create({
-                fileName: filename,
-                fileCreatedDate,
-                sheets: sheetsObj,
-                teacher: user._id,
-              })
+            const newFile = await Excel.create({
+              fileName: filename,
+              sheets: sheetsObj,
+              teacher: user._id,
+            })
 
-              return res.status(StatusCodes.CREATED).json({
-                success: true,
-                file: {
-                  id: newFile._id,
-                  name: newFile.fileName,
-                },
-              })
-            } catch (err) {
-              const newFile = await Excel.create({
-                fileName: filename,
-                fileCreatedDate: new Date().toISOString(),
-                sheets: sheetsObj,
-                teacher: user._id,
-              })
-
-              return res.status(StatusCodes.CREATED).json({
-                success: true,
-                file: {
-                  id: newFile._id,
-                  name: newFile.fileName,
-                },
-              })
-            }
+            return res.status(StatusCodes.CREATED).json({
+              success: true,
+              file: {
+                id: newFile._id,
+                name: newFile.fileName,
+              },
+            })
           } else {
             return res.status(StatusCodes.BAD_REQUEST).json({
               success: false,
@@ -186,7 +167,7 @@ const getSingleFile = (req, res) => {
           })
         }
 
-        const sheet = file.sheets[Object.keys(file.sheets)[sheetIndex - 1]]
+        let sheet = file.sheets[Object.keys(file.sheets)[sheetIndex - 1]]
 
         const columnsSet = new Set(
           [].concat(
@@ -195,16 +176,24 @@ const getSingleFile = (req, res) => {
             })
           )
         )
-
-        const columns = Array.from(columnsSet).map((column) => {
-          return {
-            field: column,
-            headerName: column[0].toUpperCase() + column.substring(1),
-            flex: 1,
-          }
+        sheet.push({
+          id: "insertId",
+          rows: "insert",
         })
 
-        console.log(sheet)
+        const columns = Array.from(columnsSet)
+          .map((column) => {
+            if (column !== "id") {
+              return {
+                field: column,
+                headerName: column[0].toUpperCase() + column.substring(1),
+                sortable: false,
+                align: "center",
+                editable: true,
+              }
+            }
+          })
+          .filter(Boolean)
 
         return res.status(StatusCodes.OK).json({
           success: true,
@@ -225,8 +214,19 @@ const getSingleFile = (req, res) => {
   }
 }
 
+const patchSheet = (req, res) => {
+  try {
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      err: err.message,
+    })
+  }
+}
+
 module.exports = {
   getEditor,
   createFile,
   getSingleFile,
+  patchSheet,
 }
