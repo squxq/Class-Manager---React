@@ -216,10 +216,8 @@ const getSingleFile = (req, res) => {
 const patchSheet = (req, res) => {
   try {
     const { id: fileId } = req.params
-    const { addRowData: data } = req.body
-    const { sheetname } = req.query
-
-    console.log(Object.entries(data))
+    const { type, data, columnName } = req.body
+    const { sheetname, columns } = req.query
 
     if (Object.entries(data).length === 0) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -229,6 +227,13 @@ const patchSheet = (req, res) => {
     }
 
     const verificationArray = Object.values(data).filter((value) => !value)
+
+    if (type === "column" && !columnName) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        err: `Please provide a valid column name...`,
+      })
+    }
 
     if (verificationArray.length === 0) {
       Excel.findById(fileId, async (err, file) => {
@@ -245,74 +250,77 @@ const patchSheet = (req, res) => {
           })
         }
 
-        const changes = {
-          id: mongoose.Types.ObjectId(),
-        }
-        Object.entries(data).forEach((pair) => {
-          changes[pair[0]] = pair[1]
-        })
-
-        Excel.findOneAndUpdate(
-          { _id: file._id },
-          {
-            $push: { [`sheets.${sheetname}`]: changes },
-          },
-          { new: true },
-          (err, result) => {
-            if (err) {
-              return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-                success: false,
-                err: err.message,
-              })
-            }
-            if (!result) {
-              return res.status(StatusCodes.NOT_FOUND).json({
-                success: false,
-                err: "File not found...",
-              })
-            }
-
-            console.log(result)
-            let sheet = result.sheets[sheetname]
-
-            const columnsSet = new Set(
-              [].concat(
-                ...sheet.map((row) => {
-                  return [...Object.keys(row)]
-                })
-              )
-            )
-            sheet.push({
-              id: "insertId",
-              rows: "insert",
-            })
-
-            const columns = Array.from(columnsSet)
-              .map((column) => {
-                if (column !== "id") {
-                  return {
-                    field: column,
-                    headerName: column[0].toUpperCase() + column.substring(1),
-                    sortable: false,
-                    align: "center",
-                    editable: true,
-                  }
-                }
-              })
-              .filter(Boolean)
-
-            return res.status(StatusCodes.OK).json({
-              success: true,
-              pages: {
-                pagesnames: Object.keys(result.sheets),
-                pagescount: Object.keys(result.sheets).length,
-              },
-              sheet,
-              sheetname: sheetname,
-              columns,
-            })
+        if (type === "row") {
+          const changes = {
+            id: mongoose.Types.ObjectId(),
           }
-        )
+          Object.entries(data).forEach((pair) => {
+            changes[pair[0]] = pair[1]
+          })
+
+          Excel.findOneAndUpdate(
+            { _id: file._id },
+            {
+              $push: { [`sheets.${sheetname}`]: changes },
+            },
+            { new: true },
+            (err, result) => {
+              if (err) {
+                return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                  success: false,
+                  err: err.message,
+                })
+              }
+              if (!result) {
+                return res.status(StatusCodes.NOT_FOUND).json({
+                  success: false,
+                  err: "File not found...",
+                })
+              }
+
+              let sheet = result.sheets[sheetname]
+
+              const columnsSet = new Set(
+                [].concat(
+                  ...sheet.map((row) => {
+                    return [...Object.keys(row)]
+                  })
+                )
+              )
+              sheet.push({
+                id: "insertId",
+                rows: "insert",
+              })
+
+              const columns = Array.from(columnsSet)
+                .map((column) => {
+                  if (column !== "id") {
+                    return {
+                      field: column,
+                      headerName: column[0].toUpperCase() + column.substring(1),
+                      sortable: false,
+                      align: "center",
+                      editable: true,
+                    }
+                  }
+                })
+                .filter(Boolean)
+
+              return res.status(StatusCodes.OK).json({
+                success: true,
+                pages: {
+                  pagesnames: Object.keys(result.sheets),
+                  pagescount: Object.keys(result.sheets).length,
+                },
+                sheet,
+                sheetname: sheetname,
+                columns,
+              })
+            }
+          )
+        } else if (type === "column") {
+          console.log(data)
+        }
       })
     } else {
       return res.status(StatusCodes.BAD_REQUEST).json({

@@ -12,6 +12,7 @@ import {
   Pagination,
   PaginationItem,
   IconButton,
+  TextField,
 } from "@mui/material"
 import FlexBetween from "../dashboard/FlexBetween"
 import { FileCopy, ChevronLeftOutlined, Add } from "@mui/icons-material"
@@ -233,6 +234,8 @@ const Editor = () => {
   }
 
   const [addRowData, setAddRowData] = useState({})
+  const [addColumnData, setAddColumnData] = useState({})
+  const [columnName, setColumnName] = useState("")
 
   const handleCellEditCommit = (event, details) => {
     if (event.id === "insertId") {
@@ -240,6 +243,12 @@ const Editor = () => {
         ...addRowData,
         [event.field]: event.value,
       })
+    } else if (event.field === "placeholder") {
+      setAddColumnData({
+        ...addColumnData,
+        [event.id]: event.value,
+      })
+      console.log(addColumnData)
     }
   }
 
@@ -250,7 +259,8 @@ const Editor = () => {
       method: "patch",
       url: `http://localhost:5000/file/${fileId}`,
       data: {
-        addRowData,
+        type: "row",
+        data: addRowData,
       },
       params: {
         sheetname,
@@ -263,6 +273,29 @@ const Editor = () => {
         setColumns(res.data.columns)
         setSheet(res.data.sheet)
         setAddRowData({})
+      })
+      .catch((err) => console.log(err))
+  }
+
+  const handleUpdateColumn = async (dataColumns) => {
+    const fileId = searchParams.get("id")
+    const sheetname = searchParams.get("sheetname")
+    console.log(dataColumns, addColumnData)
+    await axios({
+      method: "patch",
+      url: `http://localhost:5000/file/${fileId}`,
+      data: {
+        type: "column",
+        data: addColumnData,
+        columnName,
+      },
+      params: {
+        sheetname,
+        columns: dataColumns,
+      },
+    })
+      .then((res) => {
+        console.log(res)
       })
       .catch((err) => console.log(err))
   }
@@ -505,15 +538,45 @@ const Editor = () => {
                 },
                 ...columns,
                 {
-                  field: "columns",
+                  field: "placeholder",
                   headerName: "",
                   sortable: false,
-                  minWidth: 10,
-                  width: 45,
                   align: "center",
+                  editable: true,
+                  width: 180,
                   renderHeader: () => (
-                    <Box>
-                      <IconButton sx={{ padding: 0 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <TextField
+                        sx={{
+                          width: "100%",
+                          "& .MuiInputBase-input": {
+                            color: "#f6f6f6",
+                          },
+                          "& label.Mui-focused": {
+                            color: "#3AAFA9",
+                          },
+                          "& .MuiInput-underline:before": {
+                            borderBottomColor: "#f6f6f6",
+                          },
+                          "& .MuiInput-underline:after": {
+                            borderBottomColor: "#3AAFA9",
+                          },
+                        }}
+                        placeholder="Column's name..."
+                        variant="standard"
+                        value={columnName}
+                        onChange={(e) => setColumnName(e.target.value)}
+                      />
+                      <IconButton
+                        sx={{ padding: 0, marginLeft: "8px" }}
+                        onClick={() => handleUpdateColumn(columns)}
+                      >
                         <Add sx={{ "&:hover": { color: "#3AAFA9" } }} />
                       </IconButton>
                     </Box>
