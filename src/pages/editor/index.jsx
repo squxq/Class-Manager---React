@@ -241,12 +241,12 @@ const Editor = () => {
     if (event.id === "insertId") {
       setAddRowData({
         ...addRowData,
-        [event.field]: event.value,
+        [event.field]: Number(event.value),
       })
     } else if (event.field === "placeholder") {
       setAddColumnData({
         ...addColumnData,
-        [event.id]: event.value,
+        [event.id]: Number(event.value),
       })
       console.log(addColumnData)
     }
@@ -535,6 +535,12 @@ const Editor = () => {
                       </Box>
                     )
                   },
+                  preProcessEditCellProps: (params) => {
+                    return {
+                      ...params.props,
+                      error: Number(params.props.value) === NaN,
+                    }
+                  },
                 },
                 ...columns,
                 {
@@ -581,6 +587,12 @@ const Editor = () => {
                       </IconButton>
                     </Box>
                   ),
+                  preProcessEditCellProps: (params) => {
+                    return {
+                      ...params.props,
+                      error: isNaN(Number(params.props.value)),
+                    }
+                  },
                 },
               ]}
               rowsPerPageOptions={[]}
