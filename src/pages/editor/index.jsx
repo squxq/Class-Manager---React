@@ -236,20 +236,46 @@ const Editor = () => {
   const [addRowData, setAddRowData] = useState({})
   const [addColumnData, setAddColumnData] = useState({})
   const [columnName, setColumnName] = useState("")
+  const [patchCell, setPatchCell] = useState([])
 
   const handleCellEditCommit = (event, details) => {
-    if (event.id === "insertId") {
+    if (event.id === "insertId" && !isNaN(Number(event.value))) {
       setAddRowData({
         ...addRowData,
         [event.field]: Number(event.value),
       })
-    } else if (event.field === "placeholder") {
+    } else if (event.field === "placeholder" && !isNaN(Number(event.value))) {
       setAddColumnData({
         ...addColumnData,
         [event.id]: Number(event.value),
       })
-      console.log(addColumnData)
+    } else {
+      setPatchCell((oldArray) => [
+        ...oldArray,
+        {
+          rowId: event.id,
+          columnName: event.field,
+          value: event.value,
+        },
+      ])
+      handlePatchCell()
     }
+  }
+
+  const handlePatchCell = async () => {
+    const fileId = searchParams.get("id")
+    await axios({
+      method: "patch",
+      url: `http://localhost:5000/file/${fileId}`,
+      data: {
+        type: "cell",
+        data: patchCell,
+      },
+    })
+      .then((res) => {
+        console.log(res)
+      })
+      .catch((err) => console.log(err))
   }
 
   const handleAddRow = async (event) => {
@@ -296,6 +322,12 @@ const Editor = () => {
     })
       .then((res) => {
         console.log(res)
+        setPageNames(res.data.pages.pagesnames)
+        setPageCount(res.data.pages.pagescount)
+        setColumns(res.data.columns)
+        setSheet(res.data.sheet)
+        setAddColumnData({})
+        setColumnName("")
       })
       .catch((err) => console.log(err))
   }

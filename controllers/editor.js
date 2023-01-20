@@ -305,6 +305,12 @@ const patchSheet = (req, res) => {
                     sortable: false,
                     align: "center",
                     editable: true,
+                    preProcessEditCellProps: (params) => {
+                      return {
+                        ...params.props,
+                        error: Number(params.props.value) === NaN,
+                      }
+                    },
                   }
                 }
               })
@@ -324,7 +330,7 @@ const patchSheet = (req, res) => {
         )
       } else if (type === "column") {
         delete changes.id
-        Object.entries(changes).forEach((pair) => {
+        await Object.entries(changes).forEach((pair) => {
           Excel.findOneAndUpdate(
             {
               [`sheets.${sheetname}.id`]: mongoose.Types.ObjectId(pair[0]),
@@ -336,9 +342,79 @@ const patchSheet = (req, res) => {
             },
             { new: true },
             (err, result) => {
-              console.log(result)
+              if (err) {
+                return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                  success: false,
+                  err: err.message,
+                })
+              }
+              if (!result) {
+                return res.status(StatusCodes.NOT_FOUND).json({
+                  success: false,
+                  err: "File not found...",
+                })
+              }
             }
           )
+        })
+
+        Excel.findById(fileId, (err, result) => {
+          if (err) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              err: err.message,
+            })
+          }
+          if (!result) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+              success: false,
+              err: "File not found...",
+            })
+          }
+          let sheet = result.sheets[sheetname]
+
+          const columnsSet = new Set(
+            [].concat(
+              ...sheet.map((row) => {
+                return [...Object.keys(row)]
+              })
+            )
+          )
+          sheet.push({
+            id: "insertId",
+            rows: "insert",
+          })
+
+          const columns = Array.from(columnsSet)
+            .map((column) => {
+              if (column !== "id") {
+                return {
+                  field: column,
+                  headerName: column[0].toUpperCase() + column.substring(1),
+                  sortable: false,
+                  align: "center",
+                  editable: true,
+                  preProcessEditCellProps: (params) => {
+                    return {
+                      ...params.props,
+                      error: Number(params.props.value) === NaN,
+                    }
+                  },
+                }
+              }
+            })
+            .filter(Boolean)
+
+          return res.status(StatusCodes.OK).json({
+            success: true,
+            pages: {
+              pagesnames: Object.keys(result.sheets),
+              pagescount: Object.keys(result.sheets).length,
+            },
+            sheet,
+            sheetname: sheetname,
+            columns,
+          })
         })
       }
     })
