@@ -54,7 +54,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dev": "nodemon main.js"
+    "dev": "nodemon main.js",
+    "server": "node main.js"
   },
   "eslintConfig": {
     "extends": [
