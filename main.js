@@ -5,7 +5,6 @@ const app = express()
 // const path = require(`path`)
 const cookieParser = require(`cookie-parser`)
 // const { StatusCodes } = require(`http-status-codes`)
-const helmet = require(`helmet`)
 
 // no public assets to access by NOW !!!                    ---- Public Assets
 
@@ -27,8 +26,6 @@ app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 // cookie parser
 app.use(cookieParser())
-// helmet
-app.use(helmet())
 
 // ejs
 app.set(`view engine`, `ejs`)
