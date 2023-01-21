@@ -14,7 +14,7 @@ const connectDB = require(`./db/connect.js`)
 const cors = require(`cors`)
 app.use(
   cors({
-    origin: `http://localhost:5173`,
+    origin: `https://admin-frontend-cbiq.onrender.com`,
     methods: "GET,PATCH,POST,DELETE",
     headers: "Content-Type, Authorization, Cookie",
     credentials: true,
