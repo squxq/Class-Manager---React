@@ -155,10 +155,7 @@ const Navbar = ({ data, userRole, userName }) => {
         </Box>
 
         {/* Right Side */}
-        <FlexBetween gap="1.5rem" marginLeft="9rem">
-          <IconButton>
-            <SettingsOutlined sx={{ fontSize: "25px", color: "#f6f6f6" }} />
-          </IconButton>
+        <FlexBetween gap="1.5rem" marginLeft="9 rem">
           <FlexBetween>
             <Button
               // onClick={handleClick}

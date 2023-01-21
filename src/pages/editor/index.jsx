@@ -42,12 +42,12 @@ const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
     display: "none",
   },
   "& .MuiDataGrid-columnHeader": {
-    borderRight: `1px solid #303030`,
+    borderRight: `1px solid rgba(255, 255, 255, 0.3)`,
   },
   "& .MuiDataGrid-columnsContainer, .MuiDataGrid-cell": {
-    borderTop: `1px solid #303030`,
+    borderTop: `1px solid rgba(255, 255, 255, 0.3)`,
     borderBottom: 0,
-    borderRight: `1px solid #303030`,
+    borderRight: `1px solid rgba(255, 255, 255, 0.3)`,
   },
   "& .MuiDataGrid-cell": {
     color: "rgba(255, 255, 255, 0.65)",
