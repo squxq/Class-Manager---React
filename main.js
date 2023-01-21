@@ -15,7 +15,7 @@ const connectDB = require(`./db/connect.js`)
 const cors = require(`cors`)
 app.use(
   cors({
-    origin: `https://admin-frontend-cbiq.onrender.com`,
+    origin: `http://localhost:5173`,
     methods: "GET,PATCH,POST,DELETE",
     headers: "Content-Type, Authorization, Cookie",
     credentials: true,
@@ -66,7 +66,7 @@ const editorRouter = require(`./routes/editor.js`)
 app.use(`/`, editorRouter)
 
 // setting up the server
-const port = process.env.PORT || 5000
+const port = 5000
 
 const start = async () => {
   try {
