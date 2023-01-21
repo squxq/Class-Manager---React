@@ -36,7 +36,7 @@ const App = () => {
             <Route path="/classes/:id" element={<Classes />} exact />
             <Route path="/summaries/:id" element={<Summaries />} exact />
             <Route path="/assignments/:id" element={<Assignments />} exact />
-            <Route path="/editor/:id" element={<Editor />} exact />
+            <Route path="/grades/:id" element={<Editor />} exact />
           </Route>
         </Routes>
       </Suspense>

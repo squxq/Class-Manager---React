@@ -15,7 +15,7 @@ import {
   TextField,
 } from "@mui/material"
 import FlexBetween from "../dashboard/FlexBetween"
-import { FileCopy, ChevronLeftOutlined, Add } from "@mui/icons-material"
+import { FileCopy, ChevronLeftOutlined, Add, Delete } from "@mui/icons-material"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { read } from "xlsx"
 import axios from "axios"
@@ -350,6 +350,8 @@ const Editor = () => {
       .catch((err) => console.log(err))
   }
 
+  const [isShown, setIsShown] = useState(false)
+
   switch (editorData) {
     case false:
       return <div>Something went wrong please try again later...</div>
@@ -605,8 +607,10 @@ const Editor = () => {
                       sx={{
                         display: "flex",
                         flexDirection: "row",
-                        justifyContent: "space-between",
+                        width: "100%",
+                        height: "100%",
                       }}
+                      justifyContent={isShown ? "center" : "space-between"}
                     >
                       <TextField
                         sx={{

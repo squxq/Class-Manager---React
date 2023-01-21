@@ -20,8 +20,16 @@ import {
 
 const navItems = [
   {
+    text: "Editors",
+    icon: null,
+  },
+  {
     text: "Calendar",
     icon: <CalendarMonthOutlined />,
+  },
+  {
+    text: "Grades",
+    icon: <Calculate />,
   },
   {
     text: "Schooling Info",
@@ -38,30 +46,6 @@ const navItems = [
   {
     text: "Assignments",
     icon: <Assignment />,
-  },
-  {
-    text: "Grades",
-    icon: null,
-  },
-  {
-    text: "Overview",
-    icon: <PointOfSaleOutlined />,
-  },
-  {
-    text: "Editor",
-    icon: <Calculate />,
-  },
-  {
-    text: "Breakdown",
-    icon: <PieChartOutlined />,
-  },
-  {
-    text: null,
-    icon: null,
-  },
-  {
-    text: "Account Settings",
-    icon: <SettingsOutlined />,
   },
 ]
 

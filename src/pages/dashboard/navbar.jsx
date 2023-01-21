@@ -151,21 +151,6 @@ const Navbar = ({ data, userRole, userName }) => {
               }
               sx={{ m: "0rem 0.5rem" }}
             />
-            <Tab
-              value="Grades"
-              label={
-                <span
-                  style={{
-                    color: "#f6f6f6",
-                    fontFamily: "Poppins",
-                    fontSize: "1.5rem",
-                  }}
-                >
-                  Grades
-                </span>
-              }
-              sx={{ m: "0rem 0.5rem" }}
-            />
           </Tabs>
         </Box>
 
