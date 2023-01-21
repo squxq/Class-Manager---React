@@ -51,7 +51,8 @@
   "scripts": {
     "vite": "vite --open",
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "dev": "nodemon main.js",
