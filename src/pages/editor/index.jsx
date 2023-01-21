@@ -25,8 +25,8 @@ import {
   gridPageSelector,
   useGridApiContext,
   useGridSelector,
+  GridToolbarExport,
 } from "@mui/x-data-grid"
-import DataGridCustomToolbar from "./custom-toolbar"
 import { styled } from "@mui/system"
 
 const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
@@ -81,19 +81,36 @@ const CustomPagination = ({ pageNames, pageCount, switchPage }) => {
   const apiRef = useGridApiContext()
 
   return (
-    <Pagination
-      variant="outlined"
-      shape="rounded"
-      size="large"
-      count={pageCount}
-      onChange={switchPage}
-      renderItem={(item) => {
-        if (item.type === "page") {
-          item.page = pageNames[item.page - 1]
-          return <PaginationItem {...item} />
-        }
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "100%",
       }}
-    />
+    >
+      <GridToolbarExport
+        sx={{
+          color: "#3AAFA9",
+          fontSize: "1.25rem",
+          marginLeft: "1rem",
+        }}
+        printOptions={{ disableToolbarButton: true }}
+      />
+      <Pagination
+        variant="outlined"
+        shape="rounded"
+        size="large"
+        count={pageCount}
+        onChange={switchPage}
+        renderItem={(item) => {
+          if (item.type === "page") {
+            item.page = pageNames[item.page - 1]
+            return <PaginationItem {...item} />
+          }
+        }}
+      />
+    </Box>
   )
 }
 
@@ -638,7 +655,6 @@ const Editor = () => {
                 },
               }}
               components={{
-                Toolbar: DataGridCustomToolbar,
                 Pagination: CustomPagination,
               }}
               componentsProps={{

@@ -393,12 +393,10 @@ const patchSheet = (req, res) => {
               rows: "insert",
             })
 
-            console.log(sheet)
-
-            // return res.status(StatusCodes.OK).json({
-            //   success: true,
-            //   sheet,
-            // })
+            return res.status(StatusCodes.OK).json({
+              success: true,
+              sheet,
+            })
           }
         )
       }
