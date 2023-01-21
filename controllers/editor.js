@@ -225,7 +225,7 @@ const patchSheet = (req, res) => {
     const { type, data, columnName } = req.body
     const { sheetname, columns } = req.query
 
-    if (Object.entries(data).length === 0) {
+    if (type !== "cell" && Object.entries(data).length === 0) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
         err: `Please provide at least one value for the ${type}...`,
@@ -282,49 +282,15 @@ const patchSheet = (req, res) => {
               })
             }
 
-            let sheet = result.sheets[sheetname]
-
-            const columnsSet = new Set(
-              [].concat(
-                ...sheet.map((row) => {
-                  return [...Object.keys(row)]
-                })
-              )
-            )
-            sheet.push({
-              id: "insertId",
-              rows: "insert",
-            })
-
-            const columns = Array.from(columnsSet)
-              .map((column) => {
-                if (column !== "id") {
-                  return {
-                    field: column,
-                    headerName: column[0].toUpperCase() + column.substring(1),
-                    sortable: false,
-                    align: "center",
-                    editable: true,
-                    preProcessEditCellProps: (params) => {
-                      return {
-                        ...params.props,
-                        error: Number(params.props.value) === NaN,
-                      }
-                    },
-                  }
-                }
-              })
-              .filter(Boolean)
-
             return res.status(StatusCodes.OK).json({
               success: true,
-              pages: {
-                pagesnames: Object.keys(result.sheets),
-                pagescount: Object.keys(result.sheets).length,
-              },
-              sheet,
-              sheetname: sheetname,
-              columns,
+              rows: [
+                changes,
+                {
+                  id: "insertId",
+                  rows: "insert",
+                },
+              ],
             })
           }
         )
@@ -354,7 +320,7 @@ const patchSheet = (req, res) => {
         updateCols((rowsArray) => {
           console.log(columns)
           columns.push({
-            field: columnName.toLowerCase(),
+            field: columnName,
             headerName: columnName[0].toUpperCase() + columnName.substring(1),
             sortable: false,
             align: "center",
@@ -366,19 +332,75 @@ const patchSheet = (req, res) => {
               }
             },
           })
+
+          const sheet = file.sheets[sheetname].map(
+            (row) =>
+              rowsArray.find(
+                (obj) =>
+                  JSON.stringify(obj.id).match(/"(.*?)"/)[1] ===
+                  JSON.stringify(row.id).match(/"(.*?)"/)[1]
+              ) || row
+          )
+          sheet.push({
+            id: "insertId",
+            rows: "insert",
+          })
+
           return res.status(StatusCodes.OK).json({
             success: true,
-            sheet: file.sheets[sheetname].map(
+            sheet,
+            columns,
+          })
+        })
+      } else if (type === "cell") {
+        console.log(data)
+        Excel.findOneAndUpdate(
+          {
+            [`sheets.${sheetname}.id`]: mongoose.Types.ObjectId(data.rowId),
+          },
+          {
+            $set: {
+              [`sheets.${sheetname}.$.${data.columnName}`]: data.value,
+            },
+          },
+          { new: true },
+          (err, result) => {
+            if (err) {
+              return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                err: err.message,
+              })
+            }
+            if (!result) {
+              return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                err: "File not found...",
+              })
+            }
+
+            console.log(result)
+
+            const sheet = file.sheets[sheetname].map(
               (row) =>
-                rowsArray.find(
+                result.sheets[sheetname].find(
                   (obj) =>
                     JSON.stringify(obj.id).match(/"(.*?)"/)[1] ===
                     JSON.stringify(row.id).match(/"(.*?)"/)[1]
                 ) || row
-            ),
-            columns,
-          })
-        })
+            )
+            sheet.push({
+              id: "insertId",
+              rows: "insert",
+            })
+
+            console.log(sheet)
+
+            // return res.status(StatusCodes.OK).json({
+            //   success: true,
+            //   sheet,
+            // })
+          }
+        )
       }
     })
   } catch (err) {

@@ -226,8 +226,6 @@ const Editor = () => {
     await getSingleSheet(e.currentTarget.id, 1)
   }
 
-  const [currentPage, setCurrentPage] = useState()
-
   const switchPage = async (event, value) => {
     const sheetName = event.currentTarget.textContent
     await getSingleSheet(searchParams.get("id"), value)
@@ -236,9 +234,9 @@ const Editor = () => {
   const [addRowData, setAddRowData] = useState({})
   const [addColumnData, setAddColumnData] = useState({})
   const [columnName, setColumnName] = useState("")
-  const [patchCell, setPatchCell] = useState([])
+  const [cellData, setCellData] = useState([{}])
 
-  const handleCellEditCommit = (event, details) => {
+  const handleCellEditCommit = (event) => {
     if (event.id === "insertId" && !isNaN(Number(event.value))) {
       setAddRowData({
         ...addRowData,
@@ -249,33 +247,39 @@ const Editor = () => {
         ...addColumnData,
         [event.id]: Number(event.value),
       })
-    } else {
-      setPatchCell((oldArray) => [
-        ...oldArray,
-        {
-          rowId: event.id,
-          columnName: event.field,
-          value: event.value,
-        },
-      ])
+    } else if (!isNaN(Number(event.value))) {
+      const newArray = cellData.splice(0, 1, {
+        rowId: event.id,
+        columnName: event.field,
+        value: Number(event.value),
+      })
+      setCellData(newArray)
+
       handlePatchCell()
     }
   }
 
   const handlePatchCell = async () => {
     const fileId = searchParams.get("id")
+    const sheetname = searchParams.get("sheetname")
     await axios({
       method: "patch",
       url: `http://localhost:5000/file/${fileId}`,
       data: {
         type: "cell",
-        data: patchCell,
+        data: cellData[0],
+      },
+      params: {
+        sheetname,
       },
     })
       .then((res) => {
         console.log(res)
+        setSheet(res.data.sheet)
       })
-      .catch((err) => console.log(err))
+      .catch((err) => {
+        console.log(err)
+      })
   }
 
   const handleAddRow = async (event) => {
@@ -294,10 +298,9 @@ const Editor = () => {
     })
       .then((res) => {
         console.log(res)
-        setPageNames(res.data.pages.pagesnames)
-        setPageCount(res.data.pages.pagescount)
-        setColumns(res.data.columns)
-        setSheet(res.data.sheet)
+        const tempArray = [...sheet]
+        tempArray.splice(sheet.length - 1, 1, ...res.data.rows)
+        setSheet(tempArray)
         setAddRowData({})
       })
       .catch((err) => console.log(err))
@@ -322,10 +325,8 @@ const Editor = () => {
     })
       .then((res) => {
         console.log(res)
-        console.log(res.data.columns, res.data.sheet)
         setColumns(res.data.columns)
         setSheet(res.data.sheet)
-        console.log(sheet)
         setAddColumnData({})
         setColumnName("")
       })
@@ -570,7 +571,7 @@ const Editor = () => {
                   preProcessEditCellProps: (params) => {
                     return {
                       ...params.props,
-                      error: Number(params.props.value) === NaN,
+                      error: isNaN(Number(params.props.value)),
                     }
                   },
                 },
