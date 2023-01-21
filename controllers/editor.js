@@ -224,6 +224,7 @@ const patchSheet = (req, res) => {
     const { id: fileId } = req.params
     const { type, data, columnName } = req.body
     const { sheetname, columns } = req.query
+    console.log(columns)
 
     if (Object.entries(data).length === 0) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -330,89 +331,52 @@ const patchSheet = (req, res) => {
         )
       } else if (type === "column") {
         delete changes.id
-        await Object.entries(changes).forEach((pair) => {
-          Excel.findOneAndUpdate(
-            {
-              [`sheets.${sheetname}.id`]: mongoose.Types.ObjectId(pair[0]),
-            },
-            {
-              $set: {
-                [`sheets.${sheetname}.$.${columnName}`]: pair[1],
+        let resultRows = []
+        const updateCols = (returnFunction) => {
+          Object.entries(changes).forEach(async (pair, index) => {
+            const result = await Excel.findOneAndUpdate(
+              {
+                [`sheets.${sheetname}.id`]: mongoose.Types.ObjectId(pair[0]),
               },
-            },
-            { new: true },
-            (err, result) => {
-              if (err) {
-                return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-                  success: false,
-                  err: err.message,
-                })
-              }
-              if (!result) {
-                return res.status(StatusCodes.NOT_FOUND).json({
-                  success: false,
-                  err: "File not found...",
-                })
-              }
-            }
-          )
-        })
-
-        Excel.findById(fileId, (err, result) => {
-          if (err) {
-            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-              success: false,
-              err: err.message,
-            })
-          }
-          if (!result) {
-            return res.status(StatusCodes.NOT_FOUND).json({
-              success: false,
-              err: "File not found...",
-            })
-          }
-          let sheet = result.sheets[sheetname]
-
-          const columnsSet = new Set(
-            [].concat(
-              ...sheet.map((row) => {
-                return [...Object.keys(row)]
-              })
+              {
+                $set: {
+                  [`sheets.${sheetname}.$.${columnName}`]: pair[1],
+                },
+              },
+              { new: true }
             )
-          )
-          sheet.push({
-            id: "insertId",
-            rows: "insert",
+            if (index === Object.entries(changes).length - 1) {
+              resultRows.push(result.sheets[sheetname])
+              returnFunction(resultRows[0])
+            }
           })
+        }
 
-          const columns = Array.from(columnsSet)
-            .map((column) => {
-              if (column !== "id") {
-                return {
-                  field: column,
-                  headerName: column[0].toUpperCase() + column.substring(1),
-                  sortable: false,
-                  align: "center",
-                  editable: true,
-                  preProcessEditCellProps: (params) => {
-                    return {
-                      ...params.props,
-                      error: Number(params.props.value) === NaN,
-                    }
-                  },
-                }
+        updateCols((rowsArray) => {
+          console.log(columns)
+          columns.push({
+            field: columnName.toLowerCase(),
+            headerName: columnName[0].toUpperCase() + columnName.substring(1),
+            sortable: false,
+            align: "center",
+            editable: true,
+            preProcessEditCellProps: (params) => {
+              return {
+                ...params.props,
+                error: Number(params.props.value) === NaN,
               }
-            })
-            .filter(Boolean)
-
+            },
+          })
           return res.status(StatusCodes.OK).json({
             success: true,
-            pages: {
-              pagesnames: Object.keys(result.sheets),
-              pagescount: Object.keys(result.sheets).length,
-            },
-            sheet,
-            sheetname: sheetname,
+            sheet: file.sheets[sheetname].map(
+              (row) =>
+                rowsArray.find(
+                  (obj) =>
+                    JSON.stringify(obj.id).match(/"(.*?)"/)[1] ===
+                    JSON.stringify(row.id).match(/"(.*?)"/)[1]
+                ) || row
+            ),
             columns,
           })
         })

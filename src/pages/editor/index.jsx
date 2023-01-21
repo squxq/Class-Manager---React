@@ -322,10 +322,10 @@ const Editor = () => {
     })
       .then((res) => {
         console.log(res)
-        setPageNames(res.data.pages.pagesnames)
-        setPageCount(res.data.pages.pagescount)
+        console.log(res.data.columns, res.data.sheet)
         setColumns(res.data.columns)
         setSheet(res.data.sheet)
+        console.log(sheet)
         setAddColumnData({})
         setColumnName("")
       })
@@ -581,7 +581,7 @@ const Editor = () => {
                   sortable: false,
                   align: "center",
                   editable: true,
-                  width: 180,
+                  width: 150,
                   renderHeader: () => (
                     <Box
                       sx={{
@@ -606,14 +606,17 @@ const Editor = () => {
                             borderBottomColor: "#3AAFA9",
                           },
                         }}
-                        placeholder="Column's name..."
+                        placeholder="Col's name..."
                         variant="standard"
                         value={columnName}
                         onChange={(e) => setColumnName(e.target.value)}
                       />
                       <IconButton
                         sx={{ padding: 0, marginLeft: "8px" }}
-                        onClick={() => handleUpdateColumn(columns)}
+                        onClick={() => {
+                          console.log(columns)
+                          handleUpdateColumn(columns)
+                        }}
                       >
                         <Add sx={{ "&:hover": { color: "#3AAFA9" } }} />
                       </IconButton>
