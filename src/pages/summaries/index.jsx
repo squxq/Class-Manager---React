@@ -104,7 +104,7 @@ const DataGridCustomToolbar = () => {
                     //   setSearchParams({ id, searchInput })
                     //   await axios({
                     //     method: "get",
-                    //     url: `http://localhost:5000/students/${id}`,
+                    //     url: `https://admin-backend-i5xx.onrender.com/students/${id}`,
                     //     params: {
                     //       id,
                     //       searchInput,
@@ -198,7 +198,7 @@ const Summaries = () => {
       console.log(userId)
       await axios({
         method: "get",
-        url: `http://localhost:5000/summaries/${userId}`,
+        url: `https://admin-backend-i5xx.onrender.com/summaries/${userId}`,
       })
         .then((res) => {
           console.log(res)
@@ -224,7 +224,7 @@ const Summaries = () => {
     } else {
       await axios({
         method: "post",
-        url: `http://localhost:5000/summaries/${userId}`,
+        url: `https://admin-backend-i5xx.onrender.com/summaries/${userId}`,
         data: {
           class: selectedClass.id,
         },
@@ -241,7 +241,7 @@ const Summaries = () => {
     console.log(e)
     await axios({
       method: "patch",
-      url: `http://localhost:5000/summaries/${userId}`,
+      url: `https://admin-backend-i5xx.onrender.com/summaries/${userId}`,
       data: {
         id: e.id,
         content: e.value,
@@ -256,7 +256,7 @@ const Summaries = () => {
   const handleDeleteSummary = async (e) => {
     await axios({
       method: "delete",
-      url: `http://localhost:5000/summaries/${userId}`,
+      url: `https://admin-backend-i5xx.onrender.com/summaries/${userId}`,
       params: {
         summaryId:
           e.currentTarget.parentElement.parentElement.parentElement.getAttribute(
@@ -278,7 +278,7 @@ const Summaries = () => {
     setQueryOptions({ filterModel: { ...filterModel.items[0] } })
     await axios({
       method: "get",
-      url: `http://localhost:5000/summaries/${userId}`,
+      url: `https://admin-backend-i5xx.onrender.com/summaries/${userId}`,
     })
   }
 

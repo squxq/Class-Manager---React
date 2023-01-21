@@ -11,7 +11,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       await axios
-        .get(`http://localhost:5000/dashboard/${id}`)
+        .get(`https://admin-backend-i5xx.onrender.com/dashboard/${id}`)
         .then((res) => {
           setDashboardData(res.data.success)
         })

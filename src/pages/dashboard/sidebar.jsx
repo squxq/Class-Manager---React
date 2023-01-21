@@ -49,7 +49,7 @@ const Sidebar = ({ drawerWidth, userId, userRole, userName }) => {
     setAnchorEl(null)
     await axios({
       method: "get",
-      url: `http://localhost:5000/logout`,
+      url: `https://admin-backend-i5xx.onrender.com/logout`,
       withCredentials: true,
     })
       .then((res) => {

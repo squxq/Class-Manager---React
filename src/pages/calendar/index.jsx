@@ -43,7 +43,7 @@ const Calendar = () => {
     const fetchData = async () => {
       await axios({
         method: "get",
-        url: `http://localhost:5000/calendar/${id}`,
+        url: `https://admin-backend-i5xx.onrender.com/calendar/${id}`,
       })
         .then((res) => {
           // get all events from database
@@ -82,7 +82,7 @@ const Calendar = () => {
   const handleSubmit = async () => {
     await axios({
       method: "post",
-      url: `http://localhost:5000/calendar/${id}`,
+      url: `https://admin-backend-i5xx.onrender.com/calendar/${id}`,
       data: { eventTitle, startDate, endDate },
     })
       .then((res) => {
@@ -119,7 +119,7 @@ const Calendar = () => {
     const eventId = info.event._def.extendedProps._id
     await axios({
       method: "get",
-      url: `http://localhost:5000/event/${eventId}`,
+      url: `https://admin-backend-i5xx.onrender.com/event/${eventId}`,
     })
       .then(async (res) => {
         const { _id, title, start, end } = res.data.event
@@ -135,7 +135,7 @@ const Calendar = () => {
   const updateEvent = async () => {
     await axios({
       method: "patch",
-      url: `http://localhost:5000/event/${eventSelected}`,
+      url: `https://admin-backend-i5xx.onrender.com/event/${eventSelected}`,
       data: { eventTitle, startDate, endDate },
     })
       .then((res) => {
@@ -150,7 +150,7 @@ const Calendar = () => {
   const deleteEvent = async () => {
     await axios({
       method: "delete",
-      url: `http://localhost:5000/event/${eventSelected}`,
+      url: `https://admin-backend-i5xx.onrender.com/event/${eventSelected}`,
     })
       .then((res) => {
         closeEvent()

@@ -174,7 +174,7 @@ const Assignments = () => {
     if (newValue !== "Create") {
       await axios({
         method: "get",
-        url: `http://localhost:5000/assignments/${userId}`,
+        url: `https://admin-backend-i5xx.onrender.com/assignments/${userId}`,
         params: {
           status: newValue,
           userRole,
@@ -210,7 +210,7 @@ const Assignments = () => {
     const fetchData = async () => {
       await axios({
         method: "get",
-        url: `http://localhost:5000/assignments/${userId}`,
+        url: `https://admin-backend-i5xx.onrender.com/assignments/${userId}`,
         params: {
           status: value,
           userRole,
@@ -238,7 +238,7 @@ const Assignments = () => {
     })
     await axios({
       method: "get",
-      url: `http://localhost:5000/assignment/${userId}`,
+      url: `https://admin-backend-i5xx.onrender.com/assignment/${userId}`,
       params: {
         cardId: id,
         role: userRole,
@@ -300,7 +300,7 @@ const Assignments = () => {
     if (e.currentTarget.id === "Create") {
       await axios({
         method: "post",
-        url: `http://localhost:5000/assignments/${userId}`,
+        url: `https://admin-backend-i5xx.onrender.com/assignments/${userId}`,
         data: {
           assignmentName,
           assignmentStartDate: startDate,
@@ -323,7 +323,7 @@ const Assignments = () => {
     } else if (e.currentTarget.id === "Edit") {
       await axios({
         method: "patch",
-        url: `http://localhost:5000/assignments/${userId}`,
+        url: `https://admin-backend-i5xx.onrender.com/assignments/${userId}`,
         data: {
           assignmentName,
           assignmentStartDate: startDate,
@@ -364,7 +364,7 @@ const Assignments = () => {
   const handleDeleteAssignment = async () => {
     await axios({
       method: "delete",
-      url: `http://localhost:5000/assignments/${userId}`,
+      url: `https://admin-backend-i5xx.onrender.com/assignments/${userId}`,
       params: {
         id: searchParams.get("id"),
       },
@@ -389,7 +389,7 @@ const Assignments = () => {
   const getAnswerFromDb = async (id) => {
     await axios({
       method: "get",
-      url: `http://localhost:5000/assignment/${userId}`,
+      url: `https://admin-backend-i5xx.onrender.com/assignment/${userId}`,
       params: {
         cardId: id,
         role: userRole,
@@ -433,7 +433,7 @@ const Assignments = () => {
     if (userRole === "Teacher") {
       await axios({
         method: "get",
-        url: `http://localhost:5000/answers/${userId}`,
+        url: `https://admin-backend-i5xx.onrender.com/answers/${userId}`,
         params: {
           id,
         },
@@ -458,7 +458,7 @@ const Assignments = () => {
     console.log(e)
     await axios({
       method: "patch",
-      url: `http://localhost:5000/answers/${userId}`,
+      url: `https://admin-backend-i5xx.onrender.com/answers/${userId}`,
       data: {
         data: e,
       },
@@ -471,7 +471,7 @@ const Assignments = () => {
   const handleSubmitAnswer = async () => {
     await axios({
       method: "post",
-      url: `http://localhost:5000/answers/${userId}`,
+      url: `https://admin-backend-i5xx.onrender.com/answers/${userId}`,
       data: {
         id: searchParams.get("id"),
       },

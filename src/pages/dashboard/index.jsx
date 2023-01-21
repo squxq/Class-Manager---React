@@ -16,7 +16,7 @@ const Layout = () => {
     const fetchData = async () => {
       await axios({
         method: `get`,
-        url: `http://localhost:5000/layout`,
+        url: `https://admin-backend-i5xx.onrender.com/layout`,
         withCredentials: true,
       })
         .then((res) => {
