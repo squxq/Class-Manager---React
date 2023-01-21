@@ -16,7 +16,7 @@ const ConfirmationPage = () => {
 
   const fetchData = async () => {
     await axios
-      .get(`https://admin-backend-i5xx.onrender.com/confirmation/${id}`, {
+      .get(`http://localhost:5000/confirmation/${id}`, {
         withCredentials: true,
       })
       .then((res) => {

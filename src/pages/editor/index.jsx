@@ -130,7 +130,7 @@ const Editor = () => {
     const fetchData = async () => {
       await axios({
         method: "get",
-        url: `https://admin-backend-i5xx.onrender.com/editor/${userId}`,
+        url: `http://localhost:5000/editor/${userId}`,
       })
         .then((res) => {
           console.log(res)
@@ -173,7 +173,7 @@ const Editor = () => {
 
     await axios({
       method: "post",
-      url: `https://admin-backend-i5xx.onrender.com/editor/${userId}`,
+      url: `http://localhost:5000/editor/${userId}`,
       data: {
         file: workbook,
         filename: file.name,
@@ -219,7 +219,7 @@ const Editor = () => {
   const getSingleSheet = async (id, sheet) => {
     await axios({
       method: "get",
-      url: `https://admin-backend-i5xx.onrender.com/file/${userId}`,
+      url: `http://localhost:5000/file/${userId}`,
       params: {
         id: id,
         sheet: sheet,
@@ -281,7 +281,7 @@ const Editor = () => {
     const sheetname = searchParams.get("sheetname")
     await axios({
       method: "patch",
-      url: `https://admin-backend-i5xx.onrender.com/file/${fileId}`,
+      url: `http://localhost:5000/file/${fileId}`,
       data: {
         type: "cell",
         data: cellData[0],
@@ -304,7 +304,7 @@ const Editor = () => {
     const sheetname = searchParams.get("sheetname")
     await axios({
       method: "patch",
-      url: `https://admin-backend-i5xx.onrender.com/file/${fileId}`,
+      url: `http://localhost:5000/file/${fileId}`,
       data: {
         type: "row",
         data: addRowData,
@@ -329,7 +329,7 @@ const Editor = () => {
     console.log(dataColumns, addColumnData)
     await axios({
       method: "patch",
-      url: `https://admin-backend-i5xx.onrender.com/file/${fileId}`,
+      url: `http://localhost:5000/file/${fileId}`,
       data: {
         type: "column",
         data: addColumnData,

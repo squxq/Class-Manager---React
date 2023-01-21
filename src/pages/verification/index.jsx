@@ -16,7 +16,7 @@ const VerificationPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       await axios
-        .get(`https://admin-backend-i5xx.onrender.com/verification/${token}`, {
+        .get(`http://localhost:5000/verification/${token}`, {
           withCredentials: true,
         })
         .then((res) => {

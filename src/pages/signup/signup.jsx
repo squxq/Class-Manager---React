@@ -125,7 +125,7 @@ const SignupPage = () => {
     e.preventDefault()
     await axios({
       method: `post`,
-      url: `https://admin-backend-i5xx.onrender.com/signup`,
+      url: `http://localhost:5000/signup`,
       data: { firstname, lastname, email, password, role },
       withCredentials: true,
     })
@@ -147,9 +147,7 @@ const SignupPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       await axios
-        .get(`https://admin-backend-i5xx.onrender.com/signup`, {
-          withCredentials: false,
-        })
+        .get(`http://localhost:5000/signup`, { withCredentials: false })
         .then((res) => {
           setSignupData(res.data.success)
         })

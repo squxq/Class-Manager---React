@@ -252,7 +252,7 @@ const DataGridCustomToolbar = ({
                       setSearchParams({ id, searchInput })
                       await axios({
                         method: "get",
-                        url: `https://admin-backend-i5xx.onrender.com/students/${id}`,
+                        url: `http://localhost:5000/students/${id}`,
                         params: {
                           id,
                           searchInput,
@@ -289,7 +289,7 @@ const Classes = () => {
     const fetchData = async () => {
       await axios({
         method: "get",
-        url: `https://admin-backend-i5xx.onrender.com/classes/${id}`,
+        url: `http://localhost:5000/classes/${id}`,
       })
         .then((res) => {
           setClassData(true)
@@ -314,7 +314,7 @@ const Classes = () => {
   const handleSubmit = async () => {
     await axios({
       method: "post",
-      url: `https://admin-backend-i5xx.onrender.com/classes/${id}`,
+      url: `http://localhost:5000/classes/${id}`,
       data: { className, studentsStatus, studentsId },
     })
       .then((res) => {
@@ -359,7 +359,7 @@ const Classes = () => {
   const handleClassClick = async (id) => {
     await axios({
       method: "get",
-      url: `https://admin-backend-i5xx.onrender.com/class/${id}`,
+      url: `http://localhost:5000/class/${id}`,
     })
       .then((res) => {
         setButtonsOpen(false)
@@ -380,7 +380,7 @@ const Classes = () => {
     const newStudents = []
     await axios({
       method: "get",
-      url: `https://admin-backend-i5xx.onrender.com/students`,
+      url: `http://localhost:5000/students`,
     })
       .then((res) => {
         console.log(res)
@@ -398,7 +398,7 @@ const Classes = () => {
   const handleRemoveStudent = async (e, params) => {
     await axios({
       method: "patch",
-      url: `https://admin-backend-i5xx.onrender.com/students/${classId}`,
+      url: `http://localhost:5000/students/${classId}`,
       data: {
         studentId: params.row.id,
       },
@@ -413,7 +413,7 @@ const Classes = () => {
   const handleStudentClick = async () => {
     await axios({
       method: "get",
-      url: `https://admin-backend-i5xx.onrender.com/class/${classId}`,
+      url: `http://localhost:5000/class/${classId}`,
     })
       .then((res) => {
         console.log(res.data.class.name)
@@ -436,7 +436,7 @@ const Classes = () => {
     console.log(className, studentsStatus, studentsId)
     await axios({
       method: "patch",
-      url: `https://admin-backend-i5xx.onrender.com/class/${classId}`,
+      url: `http://localhost:5000/class/${classId}`,
       data: {
         name: className,
         status: studentsStatus,
@@ -463,7 +463,7 @@ const Classes = () => {
 
     await axios({
       method: "delete",
-      url: `https://admin-backend-i5xx.onrender.com/class/${classId}`,
+      url: `http://localhost:5000/class/${classId}`,
     })
       .then((res) => {
         console.log(res)
@@ -705,7 +705,7 @@ const Classes = () => {
             onRequestClose={async () => {
               await axios({
                 method: "get",
-                url: `https://admin-backend-i5xx.onrender.com/classes/${id}`,
+                url: `http://localhost:5000/classes/${id}`,
               })
                 .then((res) => {
                   setClassData(true)

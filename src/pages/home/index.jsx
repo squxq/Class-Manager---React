@@ -20,9 +20,7 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       await axios
-        .get(`https://admin-backend-i5xx.onrender.com/`, {
-          withCredentials: false,
-        })
+        .get(`http://localhost:5000/`, { withCredentials: false })
         .then((res) => {
           setHomeData(res.data.success)
         })

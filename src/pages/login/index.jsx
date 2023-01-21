@@ -27,7 +27,7 @@ const LoginPage = () => {
     e.preventDefault()
     await axios({
       method: `post`,
-      url: `https://admin-backend-i5xx.onrender.com/login`,
+      url: `http://localhost:5000/login`,
       data: { email, password },
       withCredentials: true,
     })
@@ -51,9 +51,7 @@ const LoginPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       await axios
-        .get(`https://admin-backend-i5xx.onrender.com/login`, {
-          withCredentials: false,
-        })
+        .get(`http://localhost:5000/login`, { withCredentials: false })
         .then((res) => {
           setLoginData(res.data.success)
         })
