@@ -614,7 +614,6 @@ const Editor = () => {
                       <IconButton
                         sx={{ padding: 0, marginLeft: "8px" }}
                         onClick={() => {
-                          console.log(columns)
                           handleUpdateColumn(columns)
                         }}
                       >

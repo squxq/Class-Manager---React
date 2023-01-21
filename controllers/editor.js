@@ -224,7 +224,6 @@ const patchSheet = (req, res) => {
     const { id: fileId } = req.params
     const { type, data, columnName } = req.body
     const { sheetname, columns } = req.query
-    console.log(columns)
 
     if (Object.entries(data).length === 0) {
       return res.status(StatusCodes.BAD_REQUEST).json({
